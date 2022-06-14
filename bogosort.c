@@ -11,7 +11,7 @@
 #error AVX2 not supported
 #endif 
 
-#define THREAD_COUNT 4
+#define THREAD_COUNT 8
 static uint64_t SEED = 1;
 
 static uint64_t r = 3;
@@ -20,6 +20,8 @@ pthread_mutex_t result_mutex;
 
 static uint64_t total_iters[THREAD_COUNT];
 static volatile int complete;  // if true, all threads stop working
+
+static int print_which_thread_found;
 
 int rand_range(int max) {
 	r = r * 3 + 1034011;
@@ -61,6 +63,7 @@ void bogosort(int* a, int len) {
 	total_iters[0] = iters;
 }
 
+// Credit: https://stackoverflow.com/a/49154279/13458117
 void log_mm256(const __m256i value)
 {
     const size_t n = sizeof(__m256i) / sizeof(int);
@@ -75,7 +78,7 @@ void log_mm256(const __m256i value)
 
 static int* shuffles;
 
-// L1d is 48000 bytes, so we shouldn't ever get a cache miss
+// L1d is 32 kb, so we shouldn't ever get a cache miss
 #define SHUFFLE_COUNT 1024
 
 void fill_shuffles() {
@@ -96,7 +99,7 @@ inline __m256i get_8x32_shuffle(int idx) {
 	return _mm256_load_si256(idx + (const __m256i*) shuffles);
 }
 
-void* chad_bogosort(void* _thread_id) {
+void* avx2_bogosort(void* _thread_id) {
 	int thread_id = *(int*) _thread_id;
 	int* a = result;
 
@@ -135,7 +138,6 @@ void* chad_bogosort(void* _thread_id) {
 		shuffle2 = get_8x32_shuffle((r >> 12) % SHUFFLE_COUNT);
 		shuffle3 = get_8x32_shuffle((r >> 24) % SHUFFLE_COUNT);
 
-		// Shuffle a shuffle for some extra randomness
 		shuffle1 = _mm256_permutevar8x32_epi32(shuffle1, shuffle3);
 
 		interleaved1 = _mm256_unpackhi_epi32(shuffled1, shuffled2);
@@ -175,7 +177,9 @@ void* chad_bogosort(void* _thread_id) {
 
 		complete = 1;
 		
-		printf("Thread %i found!\n", thread_id);
+		if (print_which_thread_found)
+			printf("Thread %i found!\n", thread_id);
+
 		pthread_mutex_unlock(&result_mutex);
 
 		break;
@@ -188,55 +192,117 @@ void* chad_bogosort(void* _thread_id) {
 	return NULL;
 }
 
+void fill_nonzero_elems(int nonzero_elems) {
+	for (int i = 0; i < nonzero_elems; ++i) {
+		result[i] = i + 1;
+	}
+
+	for (int i = nonzero_elems; i < 16; ++i) {
+		result[i] = 0;
+	}
+}
+
 struct timespec start, finish;
 double elapsed;
 
+
+void time_start() {
+	clock_gettime(CLOCK_MONOTONIC, &start);
+}
+
+void time_end(const char* msg) {
+	if (!msg) msg = "(unnamed)";
+
+	clock_gettime(CLOCK_MONOTONIC, &finish);
+
+	elapsed = (finish.tv_sec - start.tv_sec);
+	elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+	
+	printf("Timer %s finished: %f seconds\n", msg, elapsed);
+}
+
+// Multithread AVX2 bogosort
 void run_avx2_bogosort() {
+	complete = 0;
+
 	pthread_t threads[THREAD_COUNT];
 	int thread_ids[THREAD_COUNT];
 
 	for (int i = 0; i < THREAD_COUNT; ++i) {
 		thread_ids[i] = i;
-		pthread_create(threads + i, NULL, &chad_bogosort, (void*) &thread_ids[i]);
+		pthread_create(threads + i, NULL, &avx2_bogosort, (void*) &thread_ids[i]);
 	}
 
-	clock_gettime(CLOCK_MONOTONIC, &start);
 	for (int i = 0; i < THREAD_COUNT; ++i) {
 		pthread_join(threads[i], NULL);
 	}
 }
 
-int main() {
-	_Alignas(64) int arr[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0, 0, 0, 0, 0 };
-	memcpy(result, arr, sizeof(int) * 16);
+// Bogosort n nonzero elements with 16 - n zero elements from n = 0 to 9
+void run_bogosort_100_nonzero() {	
+	char o[100];
+	for (int nonzero = 0; nonzero < 9; ++nonzero) {
+		fill_nonzero_elems(nonzero);
+		shuffle(result, 16);
 
-	int len = 16; // unused for accelerated bogosort
+		for (int i = 0; i < 100; ++i) {
+			bogosort(result, 16);
+		}
+	}
+}
 
-	clock_gettime(CLOCK_MONOTONIC, &start);
-	
-	fill_shuffles();
+// Bogosort n elements from n = 0 to 9
+void run_bogosort_100() {
+	int trials = 100;
+	char o[100];
+	for (int len = 0; len < 9; ++len) {
+		time_start();
 
-	clock_gettime(CLOCK_MONOTONIC, &finish);
+		fill_nonzero_elems(len);
+		shuffle(result, len);
 
-	elapsed = (finish.tv_sec - start.tv_sec);
-	elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+		for (int i = 0; i < trials; ++i) {
+			bogosort(result, 16);
+		}
 
-	printf("Filled shuffles: %fs\n", elapsed);
+		sprintf(o, "%i trials of standard bogosort, n = %i", trials, len);
+		time_end(o);
+	}
+}
 
+void run_avx2_bogosort_100_nonzero()  {
+	int trials = 100;
+	char o[100];
+
+	for (int nonzero = 0; nonzero < 9; ++nonzero) {
+		time_start();
+
+		for (int i = 0; i < trials; ++i) {
+			// Negligible timings
+			fill_nonzero_elems(nonzero);
+			shuffle(result, 16);
+			
+			run_avx2_bogosort();
+		}
+
+		sprintf(o, "%i trials of AVX2 bogosort, nonzero = %i", trials, nonzero);
+		time_end(o);
+	}
+}
+
+void run_full_avx2_bogosort() {
+	print_which_thread_found = 1;
+
+	fill_nonzero_elems(9);
 	shuffle(result, 16);
 
-	printf("Array: ");
+	printf("Unsorted array: ");
 	print_arr(result, 16);
 
 	run_avx2_bogosort();
 
-	clock_gettime(CLOCK_MONOTONIC, &finish);
-
-	elapsed = (finish.tv_sec - start.tv_sec);
-	elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
-
-	printf("\nCompleted bogosort: %fs\nArray: ", elapsed);
-	print_arr(result, len);
+	printf("Sorted array: ");
+	print_arr(result, 16);
 
 	uint64_t sum_iters = 0;
 	for (int i = 0; i < THREAD_COUNT; ++i) {
@@ -248,7 +314,14 @@ int main() {
 
 	printf("\nTotal iters: %llu\n", sum_iters);
 
-	// Wait for input
-	int _;
-	scanf("%i", &_);
+}
+
+int main() {
+	printf("Threads (AVX2 only): %i\n", THREAD_COUNT);
+
+	time_start();
+	fill_shuffles();
+	time_end("filled shuffles");
+
+	run_avx2_bogosort_100_nonzero();
 }
