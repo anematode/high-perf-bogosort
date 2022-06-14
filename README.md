@@ -14,7 +14,7 @@ CPU: i7-6820HQ (4 cores, base frequency: 2.70 GHz, turbo frequency: 3.60 GHz, fo
 
 #### Standard bogosort
 
-``
+```
 Timer 100 trials of standard bogosort, n = 0 finished: 0.000002 seconds
 Timer 100 trials of standard bogosort, n = 1 finished: 0.000268 seconds
 Timer 100 trials of standard bogosort, n = 2 finished: 0.004382 seconds
@@ -22,9 +22,9 @@ Timer 100 trials of standard bogosort, n = 3 finished: 0.029876 seconds
 Timer 100 trials of standard bogosort, n = 4 finished: 0.457924 seconds
 Timer 100 trials of standard bogosort, n = 5 finished: 5.284487 seconds
 Timer 100 trials of standard bogosort, n = 6 finished: 50.034664 seconds
-``
+```
 
-``
+```
 Timer 100 trials of standard bogosort, 16 elems, nonzero = 0 finished: 0.000024 seconds
 Timer 100 trials of standard bogosort, 16 elems, nonzero = 1 finished: 0.000371 seconds
 Timer 100 trials of standard bogosort, 16 elems, nonzero = 2 finished: 0.005068 seconds
@@ -32,12 +32,12 @@ Timer 100 trials of standard bogosort, 16 elems, nonzero = 3 finished: 0.037983 
 Timer 100 trials of standard bogosort, 16 elems, nonzero = 4 finished: 0.429834 seconds
 Timer 100 trials of standard bogosort, 16 elems, nonzero = 5 finished: 4.844096 seconds
 Timer 100 trials of standard bogosort, 16 elems, nonzero = 6 finished: 45.912204 seconds
-``
+```
 
 #### Accelerated bogosort
 
 ##### Single thread
-``
+```
 Threads (AVX2 only): 1
 Timer filled shuffles finished: 0.000054 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 0 finished: 0.004220 seconds
@@ -49,11 +49,11 @@ Timer 100 trials of AVX2 bogosort, nonzero = 5 finished: 0.124083 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 6 finished: 1.353731 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 7 finished: 9.176444 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 8 finished: 89.651468 seconds
-``
+```
 
 ##### Four threads
 
-``
+```
 Threads (AVX2 only): 4
 Timer filled shuffles finished: 0.000032 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 0 finished: 0.006193 seconds
@@ -65,11 +65,11 @@ Timer 100 trials of AVX2 bogosort, nonzero = 5 finished: 0.036543 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 6 finished: 0.351860 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 7 finished: 3.128944 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 8 finished: 26.986298 seconds
-``
+```
 
 ##### Eight threads
 
-``
+```
 Threads (AVX2 only): 8
 Timer filled shuffles finished: 0.000037 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 0 finished: 0.011855 seconds
@@ -81,7 +81,7 @@ Timer 100 trials of AVX2 bogosort, nonzero = 5 finished: 0.029881 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 6 finished: 0.248614 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 7 finished: 2.616380 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 8 finished: 25.353464 seconds
-``
+```
 
 (CPU hit max temps really quickly; the computer has horrible cooling)
 
@@ -93,7 +93,7 @@ CPU: i5-8250U (4 cores, base frequency: 1.6 GHz, (four-core) turbo frequency: 3.
 
 #### Standard bogosort
 
-``
+```
 Timer 100 trials of standard bogosort, 16 elems, nonzero = 0 finished: 0.000059 seconds
 Timer 100 trials of standard bogosort, 16 elems, nonzero = 1 finished: 0.000850 seconds
 Timer 100 trials of standard bogosort, 16 elems, nonzero = 2 finished: 0.014175 seconds
@@ -101,9 +101,9 @@ Timer 100 trials of standard bogosort, 16 elems, nonzero = 3 finished: 0.073353 
 Timer 100 trials of standard bogosort, 16 elems, nonzero = 4 finished: 0.571039 seconds
 Timer 100 trials of standard bogosort, 16 elems, nonzero = 5 finished: 6.323554 seconds
 Timer 100 trials of standard bogosort, 16 elems, nonzero = 6 finished: 61.942236 seconds
-``
+```
 
-``
+```
 Timer 100 trials of standard bogosort, n = 0 finished: 0.000015 seconds
 Timer 100 trials of standard bogosort, n = 1 finished: 0.000797 seconds
 Timer 100 trials of standard bogosort, n = 2 finished: 0.006723 seconds
@@ -111,13 +111,13 @@ Timer 100 trials of standard bogosort, n = 3 finished: 0.045431 seconds
 Timer 100 trials of standard bogosort, n = 4 finished: 0.627189 seconds
 Timer 100 trials of standard bogosort, n = 5 finished: 7.050931 seconds
 Timer 100 trials of standard bogosort, n = 6 finished: 63.023842 seconds
-``
+```
 
 #### Accelerated bogosort
 
 ##### Single thread
 
-``
+```
 Threads (AVX2 only): 1
 Timer filled shuffles finished: 0.000353 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 0 finished: 0.009534 seconds
@@ -129,10 +129,10 @@ Timer 100 trials of AVX2 bogosort, nonzero = 5 finished: 0.173484 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 6 finished: 1.772663 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 7 finished: 11.496866 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 8 finished: 114.392801 seconds
-``
+```
 
 ##### Four threads
-``
+```
 Threads (AVX2 only): 4
 Timer filled shuffles finished: 0.000338 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 0 finished: 0.021442 seconds
@@ -144,10 +144,10 @@ Timer 100 trials of AVX2 bogosort, nonzero = 5 finished: 0.061039 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 6 finished: 0.409936 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 7 finished: 3.669286 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 8 finished: 53.056927 seconds
-``
+```
 
 ##### Eight threads
-``
+```
 Threads (AVX2 only): 8
 Timer filled shuffles finished: 0.000295 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 0 finished: 0.042485 seconds
@@ -159,13 +159,13 @@ Timer 100 trials of AVX2 bogosort, nonzero = 5 finished: 0.046975 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 6 finished: 0.400089 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 7 finished: 4.201651 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 8 finished: 43.361431 seconds
-``
+```
 
 #### Taskset experiment data
 
 ##### Four threads
 
-``
+```
 Threads (AVX2 only): 4
 Timer filled shuffles finished: 0.000285 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 0 finished: 0.036885 seconds
@@ -177,11 +177,11 @@ Timer 100 trials of AVX2 bogosort, nonzero = 5 finished: 0.058883 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 6 finished: 0.394017 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 7 finished: 3.527786 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 8 finished: 50.045792 seconds
-``
+```
 
 ##### Eight threads
 
-``
+```
 Threads (AVX2 only): 8
 Timer filled shuffles finished: 0.000134 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 0 finished: 0.055531 seconds
@@ -193,7 +193,7 @@ Timer 100 trials of AVX2 bogosort, nonzero = 5 finished: 0.037230 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 6 finished: 0.307050 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 7 finished: 3.406547 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 8 finished: 29.452408 seconds
-``
+```
 
 ## Commentary
 
