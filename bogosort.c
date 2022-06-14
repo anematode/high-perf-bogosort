@@ -11,7 +11,7 @@
 #error AVX2 not supported
 #endif 
 
-#define THREAD_COUNT 8
+#define THREAD_COUNT 4
 static uint64_t SEED = 1;
 
 static uint64_t r = 3;
