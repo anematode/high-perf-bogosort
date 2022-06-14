@@ -9,7 +9,7 @@
 #error AVX2 not supported
 #endif 
 
-static uint64_t r = 1;
+static uint64_t r = 20141;
 
 int rand_range(int max) {
 	r = r * 3 + 1034011;
@@ -99,18 +99,19 @@ void chad_bogosort(int* a, int len) {
 	// len is 16
 	
 	__m256i mask_highest = _mm256_setr_epi32(0, -1, -1, -1, -1, -1, -1, -1);
+	__m256i shift_right = _mm256_setr_epi32(0, 0, 1, 2, 3, 4, 5, 6);
 	
 	__m256i part1 = _mm256_load_si256((const __m256i*) a);	
 	__m256i part2 = _mm256_load_si256(1 + (const __m256i*) a);
 	__m256i shuffle = get_8x32_shuffle();
 	__m256i shuffled1, shuffled2, p1sh, p1sorted, p2sh, p2sorted;
 
+	uint64_t iters = 0;
+
 	while (1) {
 		// This code bottlenecks HARD on port 5 as you might expect; it's almost entirely shuffles
 		// shift left by 4 bytes 
-		p1sh = _mm256_alignr_epi8(part1,
-				_mm256_permute2x128_si256(part1, part1, _MM_SHUFFLE(0, 0, 2, 0)),
-			       12);
+		p1sh = _mm256_permutevar8x32_epi32(part1, shift_right);
 		p1sorted = _mm256_and_si256(_mm256_cmpgt_epi32(p1sh, part1), mask_highest);
 
 		if (_mm256_testz_si256(p1sorted, p1sorted)) {
@@ -118,30 +119,47 @@ void chad_bogosort(int* a, int len) {
 		}
 
 shuffle:
+		++iters;
+
+		// Perform two shuffles within each register, then interleave registers into two new registers
+		part1 = _mm256_permutevar8x32_epi32(part1, shuffle);
+		part2 = _mm256_permutevar8x32_epi32(part2, shuffle);
+
+		shuffle = get_8x32_shuffle();
+
+		// Reprise
+		p1sh = _mm256_permutevar8x32_epi32(part1, shift_right);
+		p1sorted = _mm256_and_si256(_mm256_cmpgt_epi32(p1sh, part1), mask_highest);
+
+		if (_mm256_testz_si256(p1sorted, p1sorted)) {
+			goto test_p2_sorted;	
+		}
+
+		++iters;
+
 		// Perform two shuffles within each register, then interleave registers into two new registers
 		shuffled1 = _mm256_permutevar8x32_epi32(part1, shuffle);
 		shuffled2 = _mm256_permutevar8x32_epi32(part2, shuffle);
 
 		shuffle = get_8x32_shuffle();
 
-		// Interleave into original registers and enjoy
+		// Interleave and enjoy
 		part1 = _mm256_unpackhi_epi32(shuffled1, shuffled2);
 		part2 = _mm256_unpacklo_epi32(shuffled2, shuffled1);
 
 		continue;
 
-test_p2_sorted: p2sh = _mm256_alignr_epi8(part2,
-			_mm256_permute2x128_si256(part2, part2, _MM_SHUFFLE(0, 0, 2, 0)),
-		       12);
-
+test_p2_sorted: p2sh = _mm256_permutevar8x32_epi32(part2, shift_right);
+		
 		p2sh = _mm256_insert_epi32(p2sh, _mm256_extract_epi32(part1, 7), 0);
 		p2sorted = _mm256_cmpgt_epi32(p2sh, part2);
 
 		if (_mm256_testz_si256(p2sorted, p2sorted)) {
 			// store and return
-
 			_mm256_store_si256((__m256i*) a, part1);
 			_mm256_store_si256(1 + (__m256i*) a, part2);
+
+			printf("Iters: %llu\n", iters);
 			return;
 		}
 
@@ -166,7 +184,7 @@ int main() {
 
 	printf("Filled shuffles: %fs\n", elapsed);
 
-	_Alignas(64) int arr[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }; // }; 100, 1000, 10000, 100000, 1000000, 10000000 };
+	_Alignas(64) int arr[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0, 0, 0, 0, 0 }; // }; 100, 1000, 10000, 100000, 1000000, 10000000 };
 	shuffle(arr, len);
 
 
