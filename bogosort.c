@@ -11,7 +11,7 @@
 #error AVX2 not supported
 #endif 
 
-#define THREAD_COUNT 8
+#define THREAD_COUNT 4
 static uint64_t SEED = 1;
 
 static uint64_t r = 3;
@@ -323,5 +323,5 @@ int main() {
 	fill_shuffles();
 	time_end("filled shuffles");
 
-	run_avx2_bogosort_100_nonzero();
+	run_bogosort_100_nonzero();
 }
