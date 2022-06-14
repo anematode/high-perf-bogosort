@@ -9,7 +9,7 @@
 #error AVX2 not supported
 #endif 
 
-static uint64_t r = 20141;
+static uint64_t r = 2014;
 
 int rand_range(int max) {
 	r = r * 3 + 1034011;
@@ -59,39 +59,29 @@ void log_mm256(const __m256i value)
     printf("\n");
 }
 
+// Contains the full epicness
 static int* shuffles;
 
+// L1d is 48000 bytes, so we shouldn't ever get a cache miss
+#define SHUFFLE_LEN 1500
+
 void fill_shuffles() {
-	// Create a bunch of shuffles (8! of them, but we'll only use some of them)
-	shuffles = aligned_alloc(64, 40320 * sizeof(__m256i) / sizeof(char));
+	// Create a bunch of random shuffles (SHUFFLE_LEN of them)
+	shuffles = aligned_alloc(64, SHUFFLE_LEN * sizeof(__m256i) / sizeof(char));
 
 	int idx = 0;
-	int e[8] = {};
+	int e[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };	
 
-	// Lazy and dumb
-#define LS(i) for (e[i] = 0; e[i] < 8; ++(e[i])) {
-	LS(6)	LS(2)	LS(1)	LS(3)	LS(0)	LS(4)	LS(7)	LS(5)
+	for (int i = 0; i < SHUFFLE_LEN; ++i) {
+		shuffle(e, 8);
 
-	int f = 0;
-	for (int i = 0; i < 8; ++i) {
-		f |= (1 << e[i]); 
+		for (int j = 0; j < 8; ++j)
+			shuffles[idx++] = e[j];
 	}
-
-	if (f == 0xff) {
-		for (int i = 0; i < 8; ++i) {
-			shuffles[idx++] = e[i];
-		}
-	}
-
-#define LE }
-	LE LE LE LE LE LE LE LE
-
-#undef LE
-#undef LS
 }
 
 inline __m256i get_8x32_shuffle() {
-	return _mm256_load_si256(rand_range(1500) + (const __m256i*) shuffles);
+	return _mm256_load_si256(rand_range(SHUFFLE_LEN) + (const __m256i*) shuffles);
 }
 
 
@@ -187,18 +177,22 @@ int main() {
 	printf("Filled shuffles: %fs\n", elapsed);
 
 	_Alignas(64) int arr[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0, 0, 0, 0, 0 }; // }; 100, 1000, 10000, 100000, 1000000, 10000000 };
-	shuffle(arr, len);
 
 
 	clock_gettime(CLOCK_MONOTONIC, &start);
-	chad_bogosort(arr, len);
+	for (uint64_t _r = 0; _r < 10; ++_r) {
+		shuffle(arr, len);
+		r = _r;
+		chad_bogosort(arr, len);
+	}
 	clock_gettime(CLOCK_MONOTONIC, &finish);
 
 	elapsed = (finish.tv_sec - start.tv_sec);
 	elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
 
 	printf("\nCompleted bogosort: %fs\nArray:", elapsed);
-
+	int _;
+	scanf("%i", &_);
 
 	print_arr(arr, len);
 }
