@@ -54,3 +54,5 @@ dkms.conf
 *.S
 *.swp
 *.trace/**
+
+bogosort
