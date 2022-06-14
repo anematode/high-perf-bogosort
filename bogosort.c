@@ -329,5 +329,5 @@ int main() {
 	fill_shuffles();
 	time_end("filled shuffles");
 
-	run_bogosort_100();
+	run_bogosort_100_nonzero();
 }
