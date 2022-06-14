@@ -109,9 +109,11 @@ void chad_bogosort(int* a, int len) {
 	uint64_t iters = 0;
 
 	while (1) {
-		// This code bottlenecks HARD on port 5 as you might expect; it's almost entirely shuffles
-		// shift left by 4 bytes 
+		// This code probably bottlenecks HARD on port 5
+
+		// shift left by 4 bytes (cross-lane shuffle)
 		p1sh = _mm256_permutevar8x32_epi32(part1, shift_right);
+		// check sorted
 		p1sorted = _mm256_and_si256(_mm256_cmpgt_epi32(p1sh, part1), mask_highest);
 
 		if (_mm256_testz_si256(p1sorted, p1sorted)) {
