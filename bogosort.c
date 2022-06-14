@@ -1,3 +1,6 @@
+#define _GNU_SOURCE
+#define __USE_GNU
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -11,7 +14,14 @@
 #error AVX2 not supported
 #endif 
 
-#define THREAD_COUNT 4
+#ifdef __linux__
+#include <unistd.h>
+#include <sched.h>
+#endif
+
+#define THREAD_COUNT 8
+// Whether to attempt to force threads to certain cores to prevent switching
+#define attempt_taskset 1
 static uint64_t SEED = 1;
 
 static uint64_t r = 3;
@@ -22,6 +32,28 @@ static uint64_t total_iters[THREAD_COUNT];
 static volatile int complete;  // if true, all threads stop working
 
 static int print_which_thread_found;
+
+int core_count() {
+	return sysconf(_SC_NPROCESSORS_ONLN);
+}
+
+#ifdef __linux__
+void taskset_thread_self(int core_id) {
+	if (core_id >= core_count()) {
+		// oops
+		complete = 1;
+		abort();
+	}
+
+	// Get a taskset struct
+	cpu_set_t s;
+	CPU_ZERO(&s);
+	CPU_SET(core_id, &s);
+
+	pthread_setaffinity_np(pthread_self(),
+		sizeof(cpu_set_t), &s);
+}
+#endif
 
 int rand_range(int max) {
 	r = r * 3 + 1034011;
@@ -102,6 +134,12 @@ inline __m256i get_8x32_shuffle(int idx) {
 void* avx2_bogosort(void* _thread_id) {
 	int thread_id = *(int*) _thread_id;
 	int* a = result;
+
+#ifdef __linux__
+#if attempt_taskset
+	taskset_thread_self(thread_id); // one logical core per physical core
+#endif
+#endif
 
 	__m256i mask_highest = _mm256_setr_epi32(0, -1, -1, -1, -1, -1, -1, -1); // extract highest
 	__m256i shift_right = _mm256_setr_epi32(0, 0, 1, 2, 3, 4, 5, 6);         // shift right one 32-bit int
@@ -329,5 +367,5 @@ int main() {
 	fill_shuffles();
 	time_end("filled shuffles");
 
-	run_bogosort_100_nonzero();
+	run_avx2_bogosort_100_nonzero();
 }

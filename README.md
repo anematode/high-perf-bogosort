@@ -115,6 +115,37 @@ Timer 100 trials of standard bogosort, n = 6 finished: 63.023842 seconds
 
 #### Accelerated bogosort
 
+##### Single thread
+
+``
+Threads (AVX2 only): 1
+Timer filled shuffles finished: 0.000353 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 0 finished: 0.009534 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 1 finished: 0.008362 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 2 finished: 0.009153 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 3 finished: 0.017086 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 4 finished: 0.040970 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 5 finished: 0.173484 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 6 finished: 1.772663 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 7 finished: 11.496866 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 8 finished: 114.392801 seconds
+``
+
+##### Four threads
+``
+Threads (AVX2 only): 4
+Timer filled shuffles finished: 0.000338 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 0 finished: 0.021442 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 1 finished: 0.016392 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 2 finished: 0.008696 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 3 finished: 0.006457 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 4 finished: 0.010034 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 5 finished: 0.061039 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 6 finished: 0.409936 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 7 finished: 3.669286 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 8 finished: 53.056927 seconds
+``
+
 ##### Eight threads
 ``
 Threads (AVX2 only): 8
@@ -130,9 +161,51 @@ Timer 100 trials of AVX2 bogosort, nonzero = 7 finished: 4.201651 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 8 finished: 43.361431 seconds
 ``
 
+#### Taskset experiment data
+
+##### Four threads
+
+``
+Threads (AVX2 only): 4
+Timer filled shuffles finished: 0.000285 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 0 finished: 0.036885 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 1 finished: 0.037153 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 2 finished: 0.012807 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 3 finished: 0.008394 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 4 finished: 0.015540 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 5 finished: 0.058883 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 6 finished: 0.394017 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 7 finished: 3.527786 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 8 finished: 50.045792 seconds
+``
+
+##### Eight threads
+
+``
+Threads (AVX2 only): 8
+Timer filled shuffles finished: 0.000134 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 0 finished: 0.055531 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 1 finished: 0.027029 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 2 finished: 0.016863 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 3 finished: 0.015927 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 4 finished: 0.026215 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 5 finished: 0.037230 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 6 finished: 0.307050 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 7 finished: 3.406547 seconds
+Timer 100 trials of AVX2 bogosort, nonzero = 8 finished: 29.452408 seconds
+``
+
 ## Commentary
 
 As you would expect, the accelerated implementation handily beats the straightforward one. A few reasons:
 
 - Vertical vector comparison is branchless and there is only one particularly important branch in the main loop, which is taken very infrequently (only when the first 8 elements are sorted)
 - Everything is done with shuffles (in the instruction sense; x86 has a lot of shuffle instructions). The shuffle is done with 5 shuffle loads (that is, grabbing 5 random shuffles from memory) and 14 shuffle instructions. There is some instruction-level parallelism in the shuffle instructions. 
+
+One computer is of course much faster than the other. The Linux laptop, however, has much better cooling; the Macbook quickly hit 95 degrees and throttled (not good for it!).
+
+#### Taskset
+
+Eight threads is only marginally faster than four threads, which makes some sense because there are only four physical cores, and hyperthreading doesn't work well with heavy instructions like AVX2. Indeed, the bottleneck is port 5 uop count, which means there are just too many instructions in its uop cache, and because the cache is shared by the two threads on one logical core, they will overall not run much faster. However, by setting each thread to a specific CPU core using lower level system calls, the performance greatly improved.
+
+On the Linux machine I tried using CPU affinity to assign each thread to a specific core, and better understand the behavior. I tried four threads, assigning each thread to one physical core; and eight threads, assigning each thread to one logical core. My idea was that doing this would reduce context switches. There was a small, but statistically significant, performance improvement in doing this (53 -> 50 seconds) for 4 threads, and a huge improvement (43 -> 29.5 seconds) for 8 threads. In fact, with this new procedure, using 8 threads definitely becomes worth it. I really don't understand why taskset helps so much. I suspect that with all 8 threads in use, context switches become very common and very inefficient.
