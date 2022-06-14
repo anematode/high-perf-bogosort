@@ -240,14 +240,20 @@ void run_avx2_bogosort() {
 
 // Bogosort n nonzero elements with 16 - n zero elements from n = 0 to 9
 void run_bogosort_100_nonzero() {	
+	int trials = 100;
 	char o[100];
 	for (int nonzero = 0; nonzero < 9; ++nonzero) {
-		fill_nonzero_elems(nonzero);
-		shuffle(result, 16);
+		time_start();
 
 		for (int i = 0; i < 100; ++i) {
+			fill_nonzero_elems(nonzero);
+			shuffle(result, 16);
+
 			bogosort(result, 16);
 		}
+
+		sprintf(o, "%i trials of standard bogosort, 16 elems, nonzero = %i", trials, nonzero);
+		time_end(o);
 	}
 }
 
@@ -258,10 +264,10 @@ void run_bogosort_100() {
 	for (int len = 0; len < 9; ++len) {
 		time_start();
 
-		fill_nonzero_elems(len);
-		shuffle(result, len);
-
 		for (int i = 0; i < trials; ++i) {
+			fill_nonzero_elems(len);
+			shuffle(result, len);
+
 			bogosort(result, 16);
 		}
 
@@ -323,5 +329,5 @@ int main() {
 	fill_shuffles();
 	time_end("filled shuffles");
 
-	run_avx2_bogosort_100_nonzero();
+	run_bogosort_100();
 }
