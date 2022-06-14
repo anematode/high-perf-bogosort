@@ -21,7 +21,7 @@
 
 #define THREAD_COUNT 8
 // Whether to attempt to force threads to certain cores to prevent switching
-#define attempt_taskset 1
+#define attempt_taskset 0
 static uint64_t SEED = 1;
 
 static uint64_t r = 3;
@@ -278,12 +278,12 @@ void run_avx2_bogosort() {
 
 // Bogosort n nonzero elements with 16 - n zero elements from n = 0 to 9
 void run_bogosort_100_nonzero() {	
-	int trials = 100;
+	int trials = 20;
 	char o[100];
 	for (int nonzero = 0; nonzero < 9; ++nonzero) {
 		time_start();
 
-		for (int i = 0; i < 100; ++i) {
+		for (int i = 0; i < trials; ++i) {
 			fill_nonzero_elems(nonzero);
 			shuffle(result, 16);
 
@@ -315,10 +315,10 @@ void run_bogosort_100() {
 }
 
 void run_avx2_bogosort_100_nonzero()  {
-	int trials = 100;
+	int trials = 20;
 	char o[100];
 
-	for (int nonzero = 0; nonzero < 9; ++nonzero) {
+	for (int nonzero = 9; nonzero < 10; ++nonzero) {
 		time_start();
 
 		for (int i = 0; i < trials; ++i) {

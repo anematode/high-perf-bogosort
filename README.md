@@ -146,6 +146,10 @@ Timer 100 trials of AVX2 bogosort, nonzero = 7 finished: 3.669286 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 8 finished: 53.056927 seconds
 ``
 
+``
+Timer 20 trials of AVX2 bogosort, nonzero = 9 finished: 55.650497 seconds
+``
+
 ##### Eight threads
 ``
 Threads (AVX2 only): 8
@@ -159,6 +163,10 @@ Timer 100 trials of AVX2 bogosort, nonzero = 5 finished: 0.046975 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 6 finished: 0.400089 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 7 finished: 4.201651 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 8 finished: 43.361431 seconds
+``
+
+``
+Timer 20 trials of AVX2 bogosort, nonzero = 9 finished: 47.678672 seconds
 ``
 
 #### Taskset experiment data
@@ -179,6 +187,10 @@ Timer 100 trials of AVX2 bogosort, nonzero = 7 finished: 3.527786 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 8 finished: 50.045792 seconds
 ``
 
+``
+Timer 20 trials of AVX2 bogosort, nonzero = 9 finished: 54.983996 seconds
+``
+
 ##### Eight threads
 
 ``
@@ -195,6 +207,10 @@ Timer 100 trials of AVX2 bogosort, nonzero = 7 finished: 3.406547 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 8 finished: 29.452408 seconds
 ``
 
+```
+Timer 20 trials of AVX2 bogosort, nonzero = 9 finished: 33.717583 seconds
+```
+
 ## Commentary
 
 As you would expect, the accelerated implementation handily beats the straightforward one. A few reasons:
@@ -208,4 +224,4 @@ One computer is of course much faster than the other. The Linux laptop, however,
 
 Eight threads is only marginally faster than four threads, which makes some sense because there are only four physical cores, and hyperthreading doesn't work well with heavy instructions like AVX2. Indeed, the bottleneck is port 5 uop count, which means there are just too many instructions in its uop cache, and because the cache is shared by the two threads on one logical core, they will overall not run much faster. However, by setting each thread to a specific CPU core using lower level system calls, the performance greatly improved.
 
-On the Linux machine I tried using CPU affinity to assign each thread to a specific core, and better understand the behavior. I tried four threads, assigning each thread to one physical core; and eight threads, assigning each thread to one logical core. My idea was that doing this would reduce context switches. There was a small, but statistically significant, performance improvement in doing this (53 -> 50 seconds) for 4 threads, and a huge improvement (43 -> 29.5 seconds) for 8 threads. In fact, with this new procedure, using 8 threads definitely becomes worth it. I really don't understand why taskset helps so much. I suspect that with all 8 threads in use, context switches become very common and very inefficient.
+On the Linux machine I tried using CPU affinity to assign each thread to a specific core, and better understand the behavior. I tried four threads, assigning each thread to one physical core; and eight threads, assigning each thread to one logical core. My idea was that doing this would reduce context switches. There was a small, but statistically significant, performance improvement in doing this (53 -> 50 seconds) for 4 threads, and a huge improvement (43 -> 29.5 seconds) for 8 threads. In fact, with this new procedure, using 8 threads definitely becomes worth it. I really don't understand why taskset helps so much. I suspect that with all 8 threads in use, context switches become very common and very inefficient. It doesn't seem to be the fact that there are 8 nonzero elements--exactly one of the two AVX registers--as the same pattern shows up for 9 elements.
