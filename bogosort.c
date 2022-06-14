@@ -1,5 +1,7 @@
+#include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 #include <pthread.h>
 #include <time.h>
 
@@ -9,7 +11,15 @@
 #error AVX2 not supported
 #endif 
 
-static uint64_t r = 2014;
+#define THREAD_COUNT 4
+static uint64_t SEED = 1;
+
+static uint64_t r = 3;
+static int result[16];
+pthread_mutex_t result_mutex;
+
+static uint64_t total_iters[THREAD_COUNT];
+static volatile int complete;  // if true, all threads stop working
 
 int rand_range(int max) {
 	r = r * 3 + 1034011;
@@ -41,10 +51,14 @@ void print_arr(int* a, int len) {
 }
 
 void bogosort(int* a, int len) {
+	uint64_t iters = 0;
+
 	while (!is_sorted(a, len)) {
 		shuffle(a, len);
-		//print_arr(a, len);
+		iters++;
 	}
+
+	total_iters[0] = iters;
 }
 
 void log_mm256(const __m256i value)
@@ -59,20 +73,18 @@ void log_mm256(const __m256i value)
     printf("\n");
 }
 
-// Contains the full epicness
 static int* shuffles;
 
 // L1d is 48000 bytes, so we shouldn't ever get a cache miss
-#define SHUFFLE_LEN 1500
+#define SHUFFLE_COUNT 1024
 
 void fill_shuffles() {
-	// Create a bunch of random shuffles (SHUFFLE_LEN of them)
-	shuffles = aligned_alloc(64, SHUFFLE_LEN * sizeof(__m256i) / sizeof(char));
+	shuffles = aligned_alloc(64, SHUFFLE_COUNT * sizeof(__m256i) / sizeof(char));
 
 	int idx = 0;
 	int e[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };	
 
-	for (int i = 0; i < SHUFFLE_LEN; ++i) {
+	for (int i = 0; i < SHUFFLE_COUNT; ++i) {
 		shuffle(e, 8);
 
 		for (int j = 0; j < 8; ++j)
@@ -80,90 +92,125 @@ void fill_shuffles() {
 	}
 }
 
-inline __m256i get_8x32_shuffle() {
-	return _mm256_load_si256(rand_range(SHUFFLE_LEN) + (const __m256i*) shuffles);
+inline __m256i get_8x32_shuffle(int idx) {
+	return _mm256_load_si256(idx + (const __m256i*) shuffles);
 }
 
+void* chad_bogosort(void* _thread_id) {
+	int thread_id = *(int*) _thread_id;
+	int* a = result;
 
-void chad_bogosort(int* a, int len) {
-	// len is 16
+	__m256i mask_highest = _mm256_setr_epi32(0, -1, -1, -1, -1, -1, -1, -1); // extract highest
+	__m256i shift_right = _mm256_setr_epi32(0, 0, 1, 2, 3, 4, 5, 6);         // shift right one 32-bit int
 	
-	__m256i mask_highest = _mm256_setr_epi32(0, -1, -1, -1, -1, -1, -1, -1);
-	__m256i shift_right = _mm256_setr_epi32(0, 0, 1, 2, 3, 4, 5, 6);
-	
+	// Split into two registers
 	__m256i part1 = _mm256_load_si256((const __m256i*) a);	
 	__m256i part2 = _mm256_load_si256(1 + (const __m256i*) a);
-	__m256i shuffle = get_8x32_shuffle();
-	__m256i shuffled1, shuffled2, p1sh, p1sorted, p2sh, p2sorted;
+	__m256i shuffle1 = get_8x32_shuffle(0);
+	__m256i shuffle2 = get_8x32_shuffle(1);
+
+	// tmp registers
+	__m256i shuffled1, shuffled2, shuffle3, p1sh, p1sorted, p2sh, p2sorted, interleaved1, interleaved2;
 
 	uint64_t iters = 0;
 
-	while (1) {
+	// Ensure different seeds are used
+	
+	pthread_mutex_lock(&result_mutex);
+	uint64_t r = SEED++;
+	pthread_mutex_unlock(&result_mutex);
+
+	while (!complete) {
 		// This code probably bottlenecks HARD on port 5
-
-		// shift left by 4 bytes (cross-lane shuffle)
-		p1sh = _mm256_permutevar8x32_epi32(part1, shift_right);
-		// check sorted
-		p1sorted = _mm256_and_si256(_mm256_cmpgt_epi32(p1sh, part1), mask_highest);
-
-		if (_mm256_testz_si256(p1sorted, p1sorted)) {
-			goto test_p2_sorted;	
-		}
-
-shuffle:
+		
 		++iters;
 
-		// Perform two shuffles within each register, then interleave registers into two new registers
-		part1 = _mm256_permutevar8x32_epi32(part1, shuffle);
-		part2 = _mm256_permutevar8x32_epi32(part2, shuffle);
+		// Perform two shuffles within each register and interleave them
+		shuffled1 = _mm256_permutevar8x32_epi32(part1, shuffle1);
+		shuffled2 = _mm256_permutevar8x32_epi32(part2, shuffle2);
+		
+		r = r * 3 + 250182; // pseudorandom 64-bit
 
-		shuffle = get_8x32_shuffle();
+		shuffle1 = get_8x32_shuffle(r % SHUFFLE_COUNT);
+		shuffle2 = get_8x32_shuffle((r >> 12) % SHUFFLE_COUNT);
+		shuffle3 = get_8x32_shuffle((r >> 24) % SHUFFLE_COUNT);
 
-		// Reprise
-		p1sh = _mm256_permutevar8x32_epi32(part1, shift_right);
-		p1sorted = _mm256_and_si256(_mm256_cmpgt_epi32(p1sh, part1), mask_highest);
+		// Shuffle a shuffle for some extra randomness
+		shuffle1 = _mm256_permutevar8x32_epi32(shuffle1, shuffle3);
 
-		if (_mm256_testz_si256(p1sorted, p1sorted)) {
-			goto test_p2_sorted;	
-		}
+		interleaved1 = _mm256_unpackhi_epi32(shuffled1, shuffled2);
+		interleaved2 = _mm256_unpacklo_epi32(shuffled2, shuffled1);
 
-		++iters;
+		// Do it again
+		shuffle1 = get_8x32_shuffle((r >> 36) % SHUFFLE_COUNT);
+		shuffle2 = get_8x32_shuffle((r >> 48) % SHUFFLE_COUNT);
 
-		// Perform two shuffles within each register, then interleave registers into two new registers
-		shuffled1 = _mm256_permutevar8x32_epi32(part1, shuffle);
-		shuffled2 = _mm256_permutevar8x32_epi32(part2, shuffle);
+		shuffled1 = _mm256_permutevar8x32_epi32(part1, shuffle1);
+		shuffled2 = _mm256_permutevar8x32_epi32(part2, shuffle2);
 
-		shuffle = get_8x32_shuffle();
-
-		// Interleave and enjoy
 		part1 = _mm256_unpackhi_epi32(shuffled1, shuffled2);
 		part2 = _mm256_unpacklo_epi32(shuffled2, shuffled1);
 
-		continue;
+		// check sorted
+		p1sh = _mm256_permutevar8x32_epi32(part1, shift_right);
+		p1sorted = _mm256_and_si256(_mm256_cmpgt_epi32(p1sh, part1), mask_highest);
 
-test_p2_sorted: p2sh = _mm256_permutevar8x32_epi32(part2, shift_right);
+		if (!_mm256_testz_si256(p1sorted, p1sorted)) {
+			continue;
+		}
+
+		p2sh = _mm256_permutevar8x32_epi32(part2, shift_right);
 		
 		p2sh = _mm256_insert_epi32(p2sh, _mm256_extract_epi32(part1, 7), 0);
 		p2sorted = _mm256_cmpgt_epi32(p2sh, part2);
 
-		if (_mm256_testz_si256(p2sorted, p2sorted)) {
-			// store and return
-			_mm256_store_si256((__m256i*) a, part1);
-			_mm256_store_si256(1 + (__m256i*) a, part2);
-
-			printf("Iters: %llu\n", iters);
-			return;
+		if (!_mm256_testz_si256(p2sorted, p2sorted)) {
+			continue;
 		}
+	
+		// store and return
+		pthread_mutex_lock(&result_mutex);
+		_mm256_store_si256((__m256i*) a, part1);
+		_mm256_store_si256(1 + (__m256i*) a, part2);
 
-		goto shuffle;
+		complete = 1;
+		
+		printf("Thread %i found!\n", thread_id);
+		pthread_mutex_unlock(&result_mutex);
+
+		break;
 	}
+
+	pthread_mutex_lock(&result_mutex);
+	total_iters[thread_id] = iters;
+	pthread_mutex_unlock(&result_mutex);
+
+	return NULL;
 }
 
 struct timespec start, finish;
 double elapsed;
 
+void run_avx2_bogosort() {
+	pthread_t threads[THREAD_COUNT];
+	int thread_ids[THREAD_COUNT];
+
+	for (int i = 0; i < THREAD_COUNT; ++i) {
+		thread_ids[i] = i;
+		pthread_create(threads + i, NULL, &chad_bogosort, (void*) &thread_ids[i]);
+	}
+
+	clock_gettime(CLOCK_MONOTONIC, &start);
+	for (int i = 0; i < THREAD_COUNT; ++i) {
+		pthread_join(threads[i], NULL);
+	}
+}
+
 int main() {
-	int len = 16;
+	_Alignas(64) int arr[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0, 0, 0, 0, 0 };
+	memcpy(result, arr, sizeof(int) * 16);
+
+	int len = 16; // unused for accelerated bogosort
 
 	clock_gettime(CLOCK_MONOTONIC, &start);
 	
@@ -176,23 +223,32 @@ int main() {
 
 	printf("Filled shuffles: %fs\n", elapsed);
 
-	_Alignas(64) int arr[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0, 0, 0, 0, 0 }; // }; 100, 1000, 10000, 100000, 1000000, 10000000 };
+	shuffle(result, 16);
 
+	printf("Array: ");
+	print_arr(result, 16);
 
-	clock_gettime(CLOCK_MONOTONIC, &start);
-	for (uint64_t _r = 0; _r < 10; ++_r) {
-		shuffle(arr, len);
-		r = _r;
-		chad_bogosort(arr, len);
-	}
+	run_avx2_bogosort();
+
 	clock_gettime(CLOCK_MONOTONIC, &finish);
 
 	elapsed = (finish.tv_sec - start.tv_sec);
 	elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
 
-	printf("\nCompleted bogosort: %fs\nArray:", elapsed);
+	printf("\nCompleted bogosort: %fs\nArray: ", elapsed);
+	print_arr(result, len);
+
+	uint64_t sum_iters = 0;
+	for (int i = 0; i < THREAD_COUNT; ++i) {
+		uint64_t iters = total_iters[i];
+
+		sum_iters += iters;
+		printf("Thread %i iters: %llu\n", i, iters);
+	}
+
+	printf("\nTotal iters: %llu\n", sum_iters);
+
+	// Wait for input
 	int _;
 	scanf("%i", &_);
-
-	print_arr(arr, len);
 }
