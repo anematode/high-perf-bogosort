@@ -75,6 +75,3 @@ Timer 100 trials of AVX2 bogosort, nonzero = 6 finished: 0.400089 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 7 finished: 4.201651 seconds
 Timer 100 trials of AVX2 bogosort, nonzero = 8 finished: 43.361431 seconds
 ```
-
-=======
->>>>>>> 142078f3bb5d3c4461bc6ff322d386cb90eeba53
