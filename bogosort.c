@@ -87,7 +87,7 @@ void summarize_total_iters() {
 	double elapsed = (finish.tv_sec - last_cleared.tv_sec);
 	elapsed += (finish.tv_nsec - last_cleared.tv_nsec) / 1000000000.0;
 	
-	printf("ns per iter: %f\n", elapsed / sum_total_iters());
+	printf("ns per iter: %f\n", elapsed / sum_iters * 1.0e9);
 }
 
 // Print victory
@@ -442,6 +442,7 @@ void run_full_avx2_bogosort(int num_threads) {
 void standard_battery() {
 	time_start();
 
+	clear_total_iters();
 	run_bogosort(100, 0, 11);
 	clear_total_iters();
 	run_bogosort_nonzero(100, 0, 7);
