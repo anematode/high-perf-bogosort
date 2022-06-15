@@ -37,7 +37,7 @@ There is a lot of shuffling here, and conceivably the number of shuffles could b
 
 More seriously, sorted status is checked by shifting the first register to the right and doing a vertical comparison. If it's all 0s then that half is sorted, and it jumps to a (not particularly optimized) test for whether the second half is sorted. If so, the search is over! Multithreading bogosort is easy: each thread has its own registers and RNG, but shares the same 1024 possible orders. The first thread that finds the prize sets a global flag, writes the result to a static array, and terminates in glory. The rest of the threads, seeing that the work is done, terminate equally gloriously--in bogosort, unlike in the Olympics, there are participation trophies.
 
-On my Macbook Pro, accelerated bogosort averages **3.36 nanoseconds** per shuffle + test for single-threaded performance and one shuffle + test every **f nanoseconds** with four threads.
+On my Macbook Pro, with 16 distinct elements, accelerated bogosort averages **3.36 nanoseconds** per shuffle + test for single-threaded performance and one shuffle + test every **f nanoseconds** with four threads. The bottleneck is throughput on port 5, which performs shuffles (in particular, the *vpermd* (arbitrary permutation of integers) and *vpunpck(hl)dq* (interleave two ymm registers), and the length is 10 cycles. The code branches off of *vptest*, which isn't great if the branch is hard to predict. The branch happens when the lower register is sorted; when shuffling with a lot of zeros, the branch actuallyhappens relatively often, which is bad.
 
 #### Taskset
 

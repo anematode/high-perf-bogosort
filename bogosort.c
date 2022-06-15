@@ -170,25 +170,37 @@ void log_mm256(const __m256i value)
 
 static int* shuffles;
 
+// Select a random (variable) offset from here. Should fit in L1d
+static __m256i shifts[10];
+
 // L1d is 32 kb, so we shouldn't ever get a cache miss
 #define SHUFFLE_COUNT 1024
 
 void fill_shuffles() {
 	shuffles = aligned_alloc(64, SHUFFLE_COUNT * sizeof(__m256i) / sizeof(char));
 
-	int idx = 0;
 	int e[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };	
 
-	for (int i = 0; i < SHUFFLE_COUNT; ++i) {
-		shuffle(e, 8);
+	// Any consecutive three bits (offset by multiple of three) is a valid shuffle, packing 21 shuffles per 256-bit chunk
+	for (int offset = 0; offset < 10; ++offset) {
+		int idx = 0;
+		for (int i = 0; i < SHUFFLE_COUNT; ++i) {
+			shuffle(e, 8);
 
-		for (int j = 0; j < 8; ++j)
-			shuffles[idx++] = e[j];
+			for (int j = 0; j < 8; ++j)
+				shuffles[idx++] |= e[j] << (offset * 3);
+		}
+
+		_mm256_store_si256(shifts + offset, _mm256_set1_epi32(3 * offset));
 	}
 }
 
 inline __m256i get_8x32_shuffle(int idx) {
 	return _mm256_load_si256(idx + (const __m256i*) shuffles);
+}
+
+inline __m256i get_shuffle_shift(int idx) {
+	return _mm256_load_si256(idx + shifts);
 }
 
 void* avx2_bogosort(void* _thread_id) {
@@ -203,7 +215,7 @@ void* avx2_bogosort(void* _thread_id) {
 #endif
 
 	__m256i mask_highest = _mm256_setr_epi32(0, -1, -1, -1, -1, -1, -1, -1); // extract highest
-	__m256i shift_right = _mm256_setr_epi32(0, 0, 1, 2, 3, 4, 5, 6);         // shift right one 32-bit int
+	__m256i shift_right = _mm256_setr_epi32(0, 0, 1, 2, 3, 4, 5, 6);         // shift right one 32-bit int  (gets optimized out)
 	
 	// Split into two registers
 	__m256i part1 = _mm256_load_si256((const __m256i*) a);	
@@ -212,7 +224,7 @@ void* avx2_bogosort(void* _thread_id) {
 	__m256i shuffle2 = get_8x32_shuffle(1);
 
 	// tmp registers
-	__m256i shuffled1, shuffled2, shuffle3, p1sh, p1sorted, p2sh, p2sorted, interleaved1, interleaved2;
+	__m256i shuffled1, shuffled2, p1sh, p1sorted, p2sh, p2sorted, interleaved1, interleaved2, shuffle_shift;
 
 	uint64_t iters = 0;
 
@@ -222,9 +234,8 @@ void* avx2_bogosort(void* _thread_id) {
 	uint64_t r = SEED++;
 	pthread_mutex_unlock(&result_mutex);
 
-	while (!complete) {
-		// This code probably bottlenecks hard on port 5
-		
+	while (!complete) {	
+		// Bottleneck is throughput on port 5 (vpermd, vpunpckhdq, vpunpckldq), 10 instructions with TP 1 -> 10 cycles
 		++iters;
 
 		// Perform two shuffles within each register and interleave them
@@ -235,7 +246,7 @@ void* avx2_bogosort(void* _thread_id) {
 
 		shuffle1 = get_8x32_shuffle(r % SHUFFLE_COUNT);
 		shuffle2 = get_8x32_shuffle((r >> 12) % SHUFFLE_COUNT);
-		shuffle3 = get_8x32_shuffle((r >> 24) % SHUFFLE_COUNT);
+		shuffle_shift = get_shuffle_shift(1);
 
 		interleaved1 = _mm256_unpackhi_epi32(shuffled1, shuffled2);
 		interleaved2 = _mm256_unpacklo_epi32(shuffled2, shuffled1);
@@ -247,10 +258,11 @@ void* avx2_bogosort(void* _thread_id) {
 		part2 = _mm256_unpacklo_epi32(shuffled2, shuffled1);	
 
 		shuffle1 = get_8x32_shuffle((r >> 36) % SHUFFLE_COUNT);
-		shuffle2 = _mm256_permutevar8x32_epi32(get_8x32_shuffle(r >> 54), shuffle3);	
+		shuffle2 = _mm256_srlv_epi32(get_8x32_shuffle(r >> 54), shuffle_shift);	
 
 		// check sorted
 		p1sh = _mm256_permutevar8x32_epi32(part1, shift_right);
+		// Compiles to vpblendd
 		p1sorted = _mm256_and_si256(_mm256_cmpgt_epi32(p1sh, part1), mask_highest);
 	
 		if (!_mm256_testz_si256(p1sorted, p1sorted)) {
