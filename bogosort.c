@@ -35,7 +35,7 @@
 static uint64_t SEED = 1;
 
 static uint64_t r = 3;
-static int result[16];
+static int result[24]; // only 16 are used
 pthread_mutex_t result_mutex;
 
 static uint64_t total_iters[MAX_THREADS];
@@ -205,7 +205,7 @@ inline __m256i get_shuffle_shift(int idx) {
 	return _mm256_load_si256(idx + shifts);
 }
 
-#define SHOW_CYCLES 1
+#define SHOW_CYCLES 0
 
 void* avx2_bogosort(void* _thread_id) {
 	int thread_id = _thread_id ? *(int*) _thread_id : 0;
@@ -306,10 +306,10 @@ void* avx2_bogosort(void* _thread_id) {
 	}
 	
 	// Force storage
-#ifdef SHOW_CYCLES
+#if SHOW_CYCLES
 	uint64_t cyc_end = __rdtscp(&_);
 	printf("Cyc: %llu\n", cyc_end - cyc_start);
-	_mm256_store_si256((__m256i*) a, p1sorted);
+	_mm256_store_si256(2 + (__m256i*) a, p1sorted);
 #endif
 
 	pthread_mutex_lock(&result_mutex);
@@ -508,7 +508,6 @@ void standard_battery_non_accel() {
 void standard_battery() {
 	time_start();
 
-
 	int thread_counts[] = { 1, 2, 4, 8, 4, 8, 4, 8 };
 	int trialss[] = { 100, 100, 100, 100, 20, 20, 1, 1 };
 	int max_cnts[] = { 8, 8, 9, 9, 10, 10, 11, 11 };
@@ -532,6 +531,8 @@ void standard_battery() {
 }
 
 int main() {
+	setvbuf(stdout, NULL, _IONBF, 0);
+
 	printf("Max threads (accelerated only): %i\n", MAX_THREADS);
 	printf("Compiled with taskset: %s\n", attempt_taskset ? "yes" : "no");
 
@@ -539,6 +540,6 @@ int main() {
 	fill_shuffles();
 	time_end("filled shuffles");
 
-	// standard_battery();
-	single_threaded_iters();
+	standard_battery();
+	// single_threaded_iters();
 }

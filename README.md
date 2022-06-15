@@ -37,7 +37,7 @@ There is a lot of shuffling here, and conceivably the number of shuffles could b
 
 More seriously, sorted status is checked by shifting the first register to the right and doing a vertical comparison. If it's all 0s then that half is sorted, and it jumps to a (not particularly optimized) test for whether the second half is sorted. If so, the search is over! Multithreading bogosort is easy: each thread has its own registers and RNG, but shares the same 1024 possible orders. The first thread that finds the prize sets a global flag, writes the result to a static array, and terminates in glory. The rest of the threads, seeing that the work is done, terminate equally gloriously--in bogosort, unlike in the Olympics, there are participation trophies.
 
-On my Macbook Pro, with 16 distinct elements, accelerated bogosort averages **14 cycles** per shuffle + test for single-threaded performance. The bottleneck is vector loads of shuffles, which could be optimized better for sure. I'll probably get to it once I'm better with optimization. Ignoring how the shuffles are generated, the actual shuffling of the main two registers has a dependency chain of length **10 cycles**, so that's essentially the lower bound (without sacrificing statistical quality). The code branches off of *vptest*, which isn't great if the branch is hard to predict. But the branch only happens when the lower register is sorted, which is infrequent when there are only a few duplicates.
+On my Macbook Pro, with 16 distinct elements, accelerated bogosort averages **14 cycles** per shuffle + test for single-threaded performance, as measured by `rdtsc` with turbo turned off. The measured amount agrees with llvm-mca analysis of the critical path. The bottleneck is vector loads of shuffles, which could be optimized better for sure. I'll probably get to it once I'm better with optimization. Ignoring how the shuffles are generated, the actual shuffling of the main two registers has a loop-carried dependency chain of length **10 cycles**, so that's essentially the lower bound (without sacrificing statistical quality). The code branches off of *vptest*, which isn't great if the branch is hard to predict. But the branch only happens when the lower register is sorted, which is infrequent when there are only a few duplicates.
 
 #### Taskset
 
@@ -47,8 +47,15 @@ On the Linux machine I tried using CPU affinity to assign each thread to a speci
 
 It turns out that macOS has a CPU affinity system too, although not as well known as Linux's. Alas, it is somewhat complicated. I might pursue it eventually.
 
-
 ## Timings
+
+How to run:
+```
+./build.sh
+./bogosort | tee results/xxx.txt
+```
+
+If you do decide to run this, make sure your computer doesn't kill itself!
 
 ### CPU 1
 Macbook Pro
