@@ -27,7 +27,7 @@
 #if attempt_taskset
 #warning Taskset does not work on non-Linux systems; attempt_taskset will be set to 0
 #undef attempt_taskset
-#define attempt_taskset 1
+#define attempt_taskset 0
 #endif
 #endif
 
@@ -40,6 +40,7 @@ pthread_mutex_t result_mutex;
 static uint64_t total_iters[MAX_THREADS];
 static volatile int complete;  // if true, all threads stop working
 
+struct timespec last_cleared;
 static int taskset_enabled;
 
 void set_taskset_enabled(int e) {
@@ -54,9 +55,20 @@ void summarize_ts_enabled() {
 	printf("Taskset is enabled: %s\n", taskset_enabled ? "yes" : "no");
 }
 
+uint64_t sum_total_iters() {
+	uint64_t total = 0;
+	for (int i = 0; i < MAX_THREADS; ++i)
+		total += total_iters[i];
+
+	return total;
+}
+
 void clear_total_iters() {
 	memset(total_iters, 0, MAX_THREADS);
+	clock_gettime(CLOCK_MONOTONIC, &last_cleared);
 }
+
+double get_elapsed();
 
 void summarize_total_iters() {
 	uint64_t sum_iters = 0;
@@ -68,6 +80,14 @@ void summarize_total_iters() {
 	}
 
 	printf("\nTotal iters: %llu\n", sum_iters);
+	
+	struct timespec finish;
+	clock_gettime(CLOCK_MONOTONIC, &finish);
+
+	double elapsed = (finish.tv_sec - last_cleared.tv_sec);
+	elapsed += (finish.tv_nsec - last_cleared.tv_nsec) / 1000000000.0;
+	
+	printf("ns per iter: %f\n", elapsed / sum_total_iters());
 }
 
 // Print victory
@@ -132,7 +152,7 @@ void bogosort(int* a, int len) {
 		iters++;
 	}
 
-	total_iters[0] = iters;
+	total_iters[0] += iters;
 }
 
 // Credit: https://stackoverflow.com/a/49154279/13458117
@@ -284,10 +304,8 @@ void fill_nonzero_elems(int nonzero_elems) {
 #define MAX_TIMER_DEPTH 10
 
 struct timespec start_a[MAX_TIMER_DEPTH];
-struct timespec finish_a[MAX_TIMER_DEPTH];
 static int timespec_i;
 double elapsed;
-
 
 void time_start() {
 	clock_gettime(CLOCK_MONOTONIC, &start_a[timespec_i]);
@@ -298,9 +316,9 @@ void time_end(const char* msg) {
 	if (!msg) msg = "(unnamed)";
 	timespec_i--;
 
-	clock_gettime(CLOCK_MONOTONIC, &finish_a[timespec_i]);
+	struct timespec finish;
+	clock_gettime(CLOCK_MONOTONIC, &finish);
 	struct timespec start = start_a[timespec_i];
-	struct timespec finish = finish_a[timespec_i];
 
 	elapsed = (finish.tv_sec - start.tv_sec);
 	elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
@@ -377,7 +395,8 @@ void run_bogosort(int trials, int min, int max) {
 void run_avx2_bogosort_nonzero(int trials, int min, int max, int thread_count)  {
 	time_start();
 
-	printf("Running accelerated bogosort_nonzero, %i trials, minimum count %i, maximum count %i\n", trials, min, max);
+	printf("Running accelerated bogosort_nonzero, %i trials, minimum count %i, maximum count %i, thread count %i\n", trials, min, max, thread_count);
+	summarize_ts_enabled();
 	char o[100];
 
 	for (int nonzero = min; nonzero < max; ++nonzero) {
@@ -404,6 +423,7 @@ void run_full_avx2_bogosort(int num_threads) {
 
 	printf("Running full 16-element accelerated bogosort");
 	print_which_thread_found = 1;
+	summarize_ts_enabled();
 
 	fill_nonzero_elems(16);
 	shuffle(result, 16);
