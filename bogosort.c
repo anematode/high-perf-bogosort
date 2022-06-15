@@ -9,6 +9,7 @@
 #include <time.h>
 
 #include <immintrin.h>
+#include <x86intrin.h>
 
 #ifndef __AVX2__
 #error AVX2 not supported
@@ -203,8 +204,10 @@ inline __m256i get_shuffle_shift(int idx) {
 	return _mm256_load_si256(idx + shifts);
 }
 
+#define SHOW_CYCLES 1
+
 void* avx2_bogosort(void* _thread_id) {
-	int thread_id = *(int*) _thread_id;
+	int thread_id = _thread_id ? *(int*) _thread_id : 0;
 	int* a = result;
 
 #ifdef __linux__
@@ -234,7 +237,6 @@ void* avx2_bogosort(void* _thread_id) {
 	uint64_t r = SEED++;
 	pthread_mutex_unlock(&result_mutex);
 
-	while (!complete) {	
 		// Bottleneck is throughput on port 5 (vpermd, vpunpckhdq, vpunpckldq), 10 instructions with TP 1 -> 10 cycles
 		++iters;
 
@@ -269,7 +271,7 @@ void* avx2_bogosort(void* _thread_id) {
 			continue;
 		}
 
-		// Compiles to a vpalignr instruction
+		// Compiles to a vpalignr instruction (but not on the critical path, so nbd)
 		p2sh = _mm256_permutevar8x32_epi32(part2, shift_right);
 		
 		p2sh = _mm256_insert_epi32(p2sh, _mm256_extract_epi32(part1, 7), 0);
@@ -293,6 +295,14 @@ void* avx2_bogosort(void* _thread_id) {
 
 		break;
 	}
+	
+	// Force storage
+#ifdef SHOW_CYCLES
+	uint64_t cyc_end = __rdtscp(&_);
+	printf("Cyc: %llu\n", cyc_end - cyc_start);
+	_mm256_store_si256((__m256i*) a, part1);
+
+#endif
 
 	pthread_mutex_lock(&result_mutex);
 	total_iters[thread_id] += iters;
@@ -444,7 +454,7 @@ void run_full_avx2_bogosort(int num_threads) {
 	time_start();
 	clear_total_iters();
 
-	printf("Running full 16-element accelerated bogosort");
+	printf("Running full 16-element accelerated bogosort\n");
 	print_which_thread_found = 1;
 	summarize_ts_enabled();
 
@@ -461,6 +471,20 @@ void run_full_avx2_bogosort(int num_threads) {
 
 	summarize_total_iters();
 	time_end("accelerated bogosort 16 elements");
+}
+
+void single_threaded_iters() {
+	fill_nonzero_elems(10);
+	shuffle(result, 16);
+	time_start();
+
+	printf("Timing single-threaded accelerated bogosort with 10 nonzero elements\n");
+	clear_total_iters();
+
+	avx2_bogosort(NULL);
+
+	summarize_total_iters();
+	time_end("accelerated bogosort 10 nonzero elements single threaded");
 }
 
 void standard_battery_non_accel() {
@@ -507,5 +531,6 @@ int main() {
 	fill_shuffles();
 	time_end("filled shuffles");
 
-	standard_battery();
+	// standard_battery();
+	single_threaded_iters();
 }

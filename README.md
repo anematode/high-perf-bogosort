@@ -37,7 +37,7 @@ There is a lot of shuffling here, and conceivably the number of shuffles could b
 
 More seriously, sorted status is checked by shifting the first register to the right and doing a vertical comparison. If it's all 0s then that half is sorted, and it jumps to a (not particularly optimized) test for whether the second half is sorted. If so, the search is over! Multithreading bogosort is easy: each thread has its own registers and RNG, but shares the same 1024 possible orders. The first thread that finds the prize sets a global flag, writes the result to a static array, and terminates in glory. The rest of the threads, seeing that the work is done, terminate equally gloriously--in bogosort, unlike in the Olympics, there are participation trophies.
 
-On my Macbook Pro, with 16 distinct elements, accelerated bogosort averages **3.36 nanoseconds** per shuffle + test for single-threaded performance and one shuffle + test every **f nanoseconds** with four threads. The bottleneck is throughput on port 5, which performs shuffles (in particular, the *vpermd* (arbitrary permutation of integers) and *vpunpck(hl)dq* (interleave two ymm registers), and the length is 10 cycles. The code branches off of *vptest*, which isn't great if the branch is hard to predict. The branch happens when the lower register is sorted; when shuffling with a lot of zeros, the branch actuallyhappens relatively often, which is bad.
+On my Macbook Pro, with 16 distinct elements, accelerated bogosort averages **3.36 nanoseconds** per shuffle + test for single-threaded performance and one shuffle + test every **f nanoseconds** with four threads. The bottleneck is throughput on port 5, which performs shuffles (in particular, the *vpermd* (arbitrary permutation of integers) and *vpunpck(hl)dq* (interleave two ymm registers), and the length is 10 cycles. The code branches off of *vptest*, which isn't great if the branch is hard to predict. The branch happens when the lower register is sorted; when shuffling with a lot of zeros, the branch actuallyhappens relatively often, which is bad. Someone more experienced could probably shave off some more.
 
 #### Taskset
 
@@ -52,8 +52,8 @@ It turns out that macOS has a CPU affinity system too, although not as well know
 
 ### CPU 1
 Macbook Pro
-CPU: i7-6820HQ (4 cores, base frequency: 2.70 GHz, turbo frequency: 3.60 GHz, four-core turbo frequency: 3.20 GHz)
-[WikiChip entry](https://en.wikichip.org/wiki/intel/core_i7/i7-6820hq)
+CPU: Core i7-8559U (base clock: 2.7GHz; max turbo: 4.5GHz)
+[WikiChip entry](https://en.wikichip.org/wiki/intel/core_i7/i7-8559u)
 
 (CPU hit max temps really quickly; the computer has horrible cooling)
 
