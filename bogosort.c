@@ -64,7 +64,7 @@ uint64_t sum_total_iters() {
 }
 
 void clear_total_iters() {
-	memset(total_iters, 0, MAX_THREADS);
+	memset(total_iters, 0, MAX_THREADS * sizeof(uint64_t));
 	clock_gettime(CLOCK_MONOTONIC, &last_cleared);
 }
 
@@ -87,7 +87,7 @@ void summarize_total_iters() {
 	double elapsed = (finish.tv_sec - last_cleared.tv_sec);
 	elapsed += (finish.tv_nsec - last_cleared.tv_nsec) / 1000000000.0;
 	
-	printf("ns per iter: %f\n", elapsed / sum_iters * 1.0e9);
+	printf("One iter every ns: %f\n", elapsed / sum_iters * 1.0e9);
 }
 
 // Print victory
@@ -223,7 +223,7 @@ void* avx2_bogosort(void* _thread_id) {
 	pthread_mutex_unlock(&result_mutex);
 
 	while (!complete) {
-		// This code probably bottlenecks HARD on port 5
+		// This code probably bottlenecks hard on port 5
 		
 		++iters;
 
@@ -345,16 +345,17 @@ void run_avx2_bogosort(int thread_count) {
 	}
 }
 
+void print_header() {
+	printf("\n\nNonzero elems,Iters,Time in s,One iter every ns,Average ms per case\n");
+}
+
 // Bogosort n nonzero elements with 16 - n zero elements from n = 0 to 9
 void run_bogosort_nonzero(int trials, int min, int max) {	
 	time_start();
 
-	printf("Running bogosort_nonzero, 16 elems, %i trials, minimum count %i, maximum count %i\n", trials, min, max);
-	printf("Nonzero elems,Iters,Time in s,Average ns per iter,Average ms per case\n");
-
 	for (int nonzero = min; nonzero < max; ++nonzero) {
 		time_start();
-		clear_total_iters();
+		clear_total_iters();	
 
 		for (int i = 0; i < trials; ++i) {
 			fill_nonzero_elems(nonzero);
@@ -364,9 +365,9 @@ void run_bogosort_nonzero(int trials, int min, int max) {
 		}
 
 		double e = grab_elapsed();
+		print_header();
 	        printf("%i,%i,%f,%f,%f\n", nonzero, trials, e, e / sum_total_iters() * 1.0e9, e / trials * 1.0e3);
 		time_end(NULL);
-        	
 		summarize_total_iters();
 	}
 
@@ -377,12 +378,9 @@ void run_bogosort_nonzero(int trials, int min, int max) {
 void run_bogosort(int trials, int min, int max) {
 	time_start();
 
-	printf("Running bogosort, %i trials, minimum count %i, maximum count %i\n", trials, min, max);
-	printf("Elems,Iters,Time in s,Average ns per iter,Average ms per case\n");
-
 	for (int len = min; len < max; ++len) {
 		time_start();
-		clear_total_iters();
+		clear_total_iters();	
 
 		for (int i = 0; i < trials; ++i) {
 			fill_nonzero_elems(len);
@@ -392,9 +390,9 @@ void run_bogosort(int trials, int min, int max) {
 		}
 
 		double e = grab_elapsed();
+		print_header();
 	        printf("%i,%i,%f,%f,%f\n", len, trials, e, e / sum_total_iters() * 1.0e9, e / trials * 1.0e3);
 		time_end(NULL);
-
 		summarize_total_iters();
 	}
         
@@ -404,13 +402,12 @@ void run_bogosort(int trials, int min, int max) {
 void run_avx2_bogosort_nonzero(int trials, int min, int max, int thread_count)  {
 	time_start();
 
-	printf("Running accelerated bogosort_nonzero, %i trials, minimum count %i, maximum count %i, thread count %i\n", trials, min, max, thread_count);
+	printf("\n\n\n\nRunning accelerated bogosort_nonzero, %i trials, minimum count %i, maximum count %i, thread count %i\n", trials, min, max, thread_count);
 	summarize_ts_enabled();
-	printf("Nonzero elems,Iters,Time in s,Average ns per iter,Average ms per case\n");
 
 	for (int nonzero = min; nonzero < max; ++nonzero) {
 		time_start();
-		clear_total_iters();
+		clear_total_iters();	
 
 		for (int i = 0; i < trials; ++i) {
 			// Negligible timings
@@ -420,10 +417,10 @@ void run_avx2_bogosort_nonzero(int trials, int min, int max, int thread_count)  
 			run_avx2_bogosort(thread_count);
 		}
 
-		double e = grab_elapsed();
-	        printf("%i,%i,%f,%f,%f\n", nonzero, trials, e, e / sum_total_iters() * 1.0e9, e / trials * 1.0e3);
+		double e = grab_elapsed();	
+		printf("Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count\n");
+	        printf("%i,%i,%f,%f,%f,%i\n", nonzero, trials, e, e / sum_total_iters() * 1.0e9, e / trials * 1.0e3, thread_count);
 		time_end(NULL);
-
 		summarize_total_iters();
 	}
 	
@@ -432,6 +429,7 @@ void run_avx2_bogosort_nonzero(int trials, int min, int max, int thread_count)  
 
 void run_full_avx2_bogosort(int num_threads) {
 	time_start();
+	clear_total_iters();
 
 	printf("Running full 16-element accelerated bogosort");
 	print_which_thread_found = 1;
