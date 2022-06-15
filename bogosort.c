@@ -247,7 +247,7 @@ void* avx2_bogosort(void* _thread_id) {
 		part2 = _mm256_unpacklo_epi32(shuffled2, shuffled1);	
 
 		shuffle1 = get_8x32_shuffle((r >> 36) % SHUFFLE_COUNT);
-		shuffle2 = _mm256_permutevar8x32_epi32(get_8x32_shuffle((r >> 48) % SHUFFLE_COUNT), shuffle3);
+		shuffle2 = _mm256_permutevar8x32_epi32(get_8x32_shuffle(r >> 54), shuffle3);	
 
 		// check sorted
 		p1sh = _mm256_permutevar8x32_epi32(part1, shift_right);
@@ -257,6 +257,7 @@ void* avx2_bogosort(void* _thread_id) {
 			continue;
 		}
 
+		// Compiles to a vpalignr instruction
 		p2sh = _mm256_permutevar8x32_epi32(part2, shift_right);
 		
 		p2sh = _mm256_insert_epi32(p2sh, _mm256_extract_epi32(part1, 7), 0);
@@ -463,7 +464,6 @@ void standard_battery_non_accel() {
 void standard_battery() {
 	time_start();
 
-	standard_battery_non_accel();
 
 	int thread_counts[] = { 1, 2, 4, 8, 4, 8, 4, 8 };
 	int trialss[] = { 100, 100, 100, 100, 20, 20, 1, 1 };
