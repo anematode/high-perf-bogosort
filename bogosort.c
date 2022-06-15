@@ -246,7 +246,7 @@ void* avx2_bogosort(void* _thread_id) {
        	cyc_start = __rdtscp(&_);
 #endif
 
-	while (iters < 1e8) {
+	while (!complete) {
 		// Bottleneck is memory loads (vmovdqa, latency 10!!)
 		++iters;
 
@@ -256,8 +256,8 @@ void* avx2_bogosort(void* _thread_id) {
 		
 		r = r * 3 + 250182; // pseudorandom 64-bit
 
-		// shuffle3 = get_8x32_shuffle(r % SHUFFLE_COUNT);
-		// shuffle4 = get_8x32_shuffle((r >> 12) % SHUFFLE_COUNT);
+		shuffle3 = get_8x32_shuffle(r % SHUFFLE_COUNT);
+		shuffle4 = get_8x32_shuffle((r >> 12) % SHUFFLE_COUNT);
 
 		interleaved1 = _mm256_unpackhi_epi32(shuffled1, shuffled2);
 		interleaved2 = _mm256_unpacklo_epi32(shuffled2, shuffled1);
@@ -265,8 +265,8 @@ void* avx2_bogosort(void* _thread_id) {
 		shuffled1 = _mm256_permutevar8x32_epi32(interleaved1, shuffle1);
 		shuffled2 = _mm256_permutevar8x32_epi32(interleaved2, shuffle2);
 		
-		// shuffle1 = get_8x32_shuffle((r >> 36) % SHUFFLE_COUNT);
-		// shuffle2 = get_8x32_shuffle(r >> 54);	
+		shuffle1 = get_8x32_shuffle((r >> 36) % SHUFFLE_COUNT);
+		shuffle2 = get_8x32_shuffle(r >> 54);	
 
 		part1 = _mm256_unpackhi_epi32(shuffled1, shuffled2);
 		part2 = _mm256_unpacklo_epi32(shuffled2, shuffled1);	
@@ -485,11 +485,15 @@ void single_threaded_iters() {
 	fill_nonzero_elems(10);
 	shuffle(result, 16);
 	time_start();
+	printf("Unsorted array: ");
+	print_arr(result, 16);	
 
 	printf("Timing single-threaded accelerated bogosort with 10 nonzero elements\n");
 	clear_total_iters();
 
 	avx2_bogosort(NULL);
+	printf("Sorted array: ");
+	print_arr(result, 16);
 
 	summarize_total_iters();
 	time_end("accelerated bogosort 10 nonzero elements single threaded");
@@ -540,6 +544,7 @@ int main() {
 	fill_shuffles();
 	time_end("filled shuffles");
 
+
+	single_threaded_iters();
 	standard_battery();
-	// single_threaded_iters();
 }
