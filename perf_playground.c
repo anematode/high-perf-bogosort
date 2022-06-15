@@ -212,14 +212,6 @@ void* avx2_bogosort(void* _thread_id) {
 		p1sh = _mm256_permutevar8x32_epi32(part1, shift_right);
 		// Compiles to vpblendd
 		p1sorted = _mm256_and_si256(_mm256_cmpgt_epi32(p1sh, part1), mask_highest);
-		
-		// Load shuffles 5 through 8 (needs to be done, branch taken or not)
-		r = r * 3 + 250182;
-
-		shuffle5 = get_8x32_shuffle(r % SHUFFLE_COUNT);
-		shuffle6 = get_8x32_shuffle((r >> 12) % SHUFFLE_COUNT);
-		shuffle7 = get_8x32_shuffle((r >> 24) % SHUFFLE_COUNT);
-		shuffle8 = get_8x32_shuffle(r >> 54);
 
 		if (_mm256_testz_si256(p1sorted, p1sorted)) {
 			goto check_p2_sorted;
@@ -228,6 +220,14 @@ void* avx2_bogosort(void* _thread_id) {
 		// Reprise
 		++iters;
 
+		// Load shuffles 5 through 8
+		r = r * 3 + 250182;
+
+		shuffle5 = get_8x32_shuffle(r % SHUFFLE_COUNT);
+		shuffle6 = get_8x32_shuffle((r >> 12) % SHUFFLE_COUNT);
+		shuffle7 = get_8x32_shuffle((r >> 24) % SHUFFLE_COUNT);
+		shuffle8 = get_8x32_shuffle(r >> 54);
+		
 		// Perform one shuffle within each register
 		shuffled1 = _mm256_permutevar8x32_epi32(part1, shuffle1);
 		shuffled2 = _mm256_permutevar8x32_epi32(part2, shuffle2);
@@ -259,6 +259,14 @@ check_p2_sorted:
 		
 		p2sh = _mm256_insert_epi32(p2sh, _mm256_extract_epi32(part1, 7), 0);
 		p2sorted = _mm256_cmpgt_epi32(p2sh, part2);
+		
+		// Needed because it was missed earlier	
+		r = r * 3 + 250182;
+
+		shuffle5 = get_8x32_shuffle(r % SHUFFLE_COUNT);
+		shuffle6 = get_8x32_shuffle((r >> 12) % SHUFFLE_COUNT);
+		shuffle7 = get_8x32_shuffle((r >> 24) % SHUFFLE_COUNT);
+		shuffle8 = get_8x32_shuffle(r >> 54);
 		
 		if (!_mm256_testz_si256(p2sorted, p2sorted)) {
 			continue;
