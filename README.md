@@ -45,7 +45,7 @@ Eight threads is only marginally faster than four threads, which makes some sens
 
 On the Linux machine I tried using CPU affinity to assign each thread to a specific core, and better understand the behavior. I tried four threads, assigning each thread to one physical core; and eight threads, assigning each thread to one logical core. My idea was that doing this would reduce context switches. There was a small, but statistically significant, performance improvement in doing this (53 -> 50 seconds) for 4 threads, and a huge improvement (43 -> 29.5 seconds) for 8 threads. In fact, with this new procedure, using 8 threads definitely becomes worth it. I really don't understand why taskset helps so much. I suspect that with all 8 threads in use, context switches become very common and very inefficient.
 
-It turns out that macOS has a CPU affinity system too, although not as well known as Linux's.
+It turns out that macOS has a CPU affinity system too, although not as well known as Linux's. Alas, it is somewhat complicated. I might pursue it eventually.
 
 
 ## Timings
