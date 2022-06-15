@@ -354,6 +354,7 @@ void run_bogosort_nonzero(int trials, int min, int max) {
 
 	for (int nonzero = min; nonzero < max; ++nonzero) {
 		time_start();
+		clear_total_iters();
 
 		for (int i = 0; i < trials; ++i) {
 			fill_nonzero_elems(nonzero);
@@ -365,9 +366,10 @@ void run_bogosort_nonzero(int trials, int min, int max) {
 		double e = grab_elapsed();
 	        printf("%i,%i,%f,%f,%f\n", nonzero, trials, e, e / sum_total_iters() * 1.0e9, e / trials * 1.0e3);
 		time_end(NULL);
+        	
+		summarize_total_iters();
 	}
 
-        summarize_total_iters();
 	time_end("bogosort_nonzero");
 }
 
@@ -380,6 +382,7 @@ void run_bogosort(int trials, int min, int max) {
 
 	for (int len = min; len < max; ++len) {
 		time_start();
+		clear_total_iters();
 
 		for (int i = 0; i < trials; ++i) {
 			fill_nonzero_elems(len);
@@ -391,9 +394,10 @@ void run_bogosort(int trials, int min, int max) {
 		double e = grab_elapsed();
 	        printf("%i,%i,%f,%f,%f\n", len, trials, e, e / sum_total_iters() * 1.0e9, e / trials * 1.0e3);
 		time_end(NULL);
+
+		summarize_total_iters();
 	}
         
-	summarize_total_iters();
 	time_end("bogosort");
 }
 
@@ -406,6 +410,7 @@ void run_avx2_bogosort_nonzero(int trials, int min, int max, int thread_count)  
 
 	for (int nonzero = min; nonzero < max; ++nonzero) {
 		time_start();
+		clear_total_iters();
 
 		for (int i = 0; i < trials; ++i) {
 			// Negligible timings
@@ -418,9 +423,10 @@ void run_avx2_bogosort_nonzero(int trials, int min, int max, int thread_count)  
 		double e = grab_elapsed();
 	        printf("%i,%i,%f,%f,%f\n", nonzero, trials, e, e / sum_total_iters() * 1.0e9, e / trials * 1.0e3);
 		time_end(NULL);
+
+		summarize_total_iters();
 	}
 	
-	summarize_total_iters();
 	time_end("accelerated bogosort_nonzero");
 }
 
