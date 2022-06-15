@@ -237,6 +237,7 @@ void* avx2_bogosort(void* _thread_id) {
 	uint64_t r = SEED++;
 	pthread_mutex_unlock(&result_mutex);
 
+	while (!complete) {
 		// Bottleneck is throughput on port 5 (vpermd, vpunpckhdq, vpunpckldq), 10 instructions with TP 1 -> 10 cycles
 		++iters;
 

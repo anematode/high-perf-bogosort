@@ -1,3 +1,6 @@
+// gcc perf_playground.c -O2 -march=native -mllvm --x86-asm-syntax=intel -fno-unroll-loops -S -o - > perf_playground.S
+// gcc perf_playground.c -o perf_playground -O2  -fno-unroll-loops -march=native -pthread
+
 #define _GNU_SOURCE
 #define __USE_GNU
 
@@ -159,11 +162,14 @@ void* avx2_bogosort(void* _thread_id) {
 	// Split into two registers
 	__m256i part1 = _mm256_load_si256((const __m256i*) a);	
 	__m256i part2 = _mm256_load_si256(1 + (const __m256i*) a);
-	__m256i shuffle1 = get_8x32_shuffle(0);
-	__m256i shuffle2 = get_8x32_shuffle(1);
 
-	// tmp registers
-	__m256i shuffled1, shuffled2, p1sh, p1sorted, p2sh, p2sorted, interleaved1, interleaved2, shuffle_shift;
+	__m256i shuffle1, shuffle2, shuffle3, shuffle4;
+	__m256i shuffle5 = get_8x32_shuffle(0),
+		shuffle6 = get_8x32_shuffle(1),
+		shuffle7 = get_8x32_shuffle(2),
+		shuffle8 = get_8x32_shuffle(3);
+	
+	__m256i shuffled1, shuffled2, interleaved1, interleaved2, p1sh, p1sorted, p2sh, p2sorted;
 
 	uint64_t iters = 0;
 
@@ -175,44 +181,93 @@ void* avx2_bogosort(void* _thread_id) {
 	uint64_t cyc_start;
        	cyc_start = __rdtscp(&_);
 
-	while (iters < 100000000) {	
-		// Bottleneck is throughput on port 5 (vpermd, vpunpckhdq, vpunpckldq), 10 instructions with TP 1 -> 10 cycles
+	while (!complete) {	
 		++iters;
 
-		// Perform two shuffles within each register and interleave them
-		shuffled1 = _mm256_permutevar8x32_epi32(part1, shuffle1);
-		shuffled2 = _mm256_permutevar8x32_epi32(part2, shuffle2);
-		
-		r = r * 3 + 250182; // pseudorandom 64-bit
+		// Load shuffles 1 through 4 (latency: <=10 each)
+		r = r * 3 + 250182;
 
-		part1 = _mm256_unpackhi_epi32(shuffled1, shuffled2);
-		part2 = _mm256_unpacklo_epi32(shuffled2, shuffled1);
-		continue;
+		shuffle1 = get_8x32_shuffle(r % SHUFFLE_COUNT);
+		shuffle2 = get_8x32_shuffle((r >> 12) % SHUFFLE_COUNT);
+		shuffle3 = get_8x32_shuffle((r >> 24) % SHUFFLE_COUNT);
+		shuffle4 = get_8x32_shuffle(r >> 54);
 
-		shuffled1 = _mm256_permutevar8x32_epi32(interleaved1, shuffle1);
-		shuffled2 = _mm256_permutevar8x32_epi32(interleaved2, shuffle2);
-	
+		// Perform one shuffle within each register
+		shuffled1 = _mm256_permutevar8x32_epi32(part1, shuffle5);
+		shuffled2 = _mm256_permutevar8x32_epi32(part2, shuffle6);
+
+		// Interleave registers	
+		interleaved1 = _mm256_unpackhi_epi32(shuffled1, shuffled2);
+		interleaved2 = _mm256_unpacklo_epi32(shuffled2, shuffled1);
+
+		// Shuffle interleaved registers
+		shuffled1 = _mm256_permutevar8x32_epi32(interleaved1, shuffle7);
+		shuffled2 = _mm256_permutevar8x32_epi32(interleaved2, shuffle8);
+
+		// Interleave registers	
 		part1 = _mm256_unpackhi_epi32(shuffled1, shuffled2);
 		part2 = _mm256_unpacklo_epi32(shuffled2, shuffled1);	
 
-		// check sorted
+		// shift right by one
 		p1sh = _mm256_permutevar8x32_epi32(part1, shift_right);
 		// Compiles to vpblendd
 		p1sorted = _mm256_and_si256(_mm256_cmpgt_epi32(p1sh, part1), mask_highest);
 
-		// End main loop early
-		continue;
+		if (_mm256_testz_si256(p1sorted, p1sorted)) {
+			goto check_p2_sorted;
+		}
+	
+		// Reprise
+		++iters;
+
+		// Load shuffles 5 through 8
+		r = r * 3 + 250182;
+
+		shuffle5 = get_8x32_shuffle(r % SHUFFLE_COUNT);
+		shuffle6 = get_8x32_shuffle((r >> 12) % SHUFFLE_COUNT);
+		shuffle7 = get_8x32_shuffle((r >> 24) % SHUFFLE_COUNT);
+		shuffle8 = get_8x32_shuffle(r >> 54);
+		
+		// Perform one shuffle within each register
+		shuffled1 = _mm256_permutevar8x32_epi32(part1, shuffle1);
+		shuffled2 = _mm256_permutevar8x32_epi32(part2, shuffle2);
+
+		// Interleave registers	
+		interleaved1 = _mm256_unpackhi_epi32(shuffled1, shuffled2);
+		interleaved2 = _mm256_unpacklo_epi32(shuffled2, shuffled1);
+
+		// Shuffle interleaved registers
+		shuffled1 = _mm256_permutevar8x32_epi32(interleaved1, shuffle3);
+		shuffled2 = _mm256_permutevar8x32_epi32(interleaved2, shuffle4);
+
+		// Interleave registers	
+		part1 = _mm256_unpackhi_epi32(shuffled1, shuffled2);
+		part2 = _mm256_unpacklo_epi32(shuffled2, shuffled1);	
+
+		// shift right by one
+		p1sh = _mm256_permutevar8x32_epi32(part1, shift_right);
+		// Compiles to vpblendd
+		p1sorted = _mm256_and_si256(_mm256_cmpgt_epi32(p1sh, part1), mask_highest);
 	
 		if (!_mm256_testz_si256(p1sorted, p1sorted)) {
 			continue;
 		}
 
-		// Compiles to a vpalignr instruction (but not on the critical path, so nbd)
+check_p2_sorted:
+		// Compiles to a vperm128 + vpalignr (but not on the critical path, so nbd)
 		p2sh = _mm256_permutevar8x32_epi32(part2, shift_right);
 		
 		p2sh = _mm256_insert_epi32(p2sh, _mm256_extract_epi32(part1, 7), 0);
 		p2sorted = _mm256_cmpgt_epi32(p2sh, part2);
+		
+		// Needed because it was missed earlier	
+		r = r * 3 + 250182;
 
+		shuffle5 = get_8x32_shuffle(r % SHUFFLE_COUNT);
+		shuffle6 = get_8x32_shuffle((r >> 12) % SHUFFLE_COUNT);
+		shuffle7 = get_8x32_shuffle((r >> 24) % SHUFFLE_COUNT);
+		shuffle8 = get_8x32_shuffle(r >> 54);
+		
 		if (!_mm256_testz_si256(p2sorted, p2sorted)) {
 			continue;
 		}
@@ -230,6 +285,7 @@ void* avx2_bogosort(void* _thread_id) {
 	uint64_t cyc_end = __rdtscp(&_);
 	printf("Cyc: %llu\n", cyc_end - cyc_start);
 	_mm256_store_si256((__m256i*) a, part1);
+	_mm256_store_si256(1+ (__m256i*) a, part2);
 
 	total_iters[thread_id] += iters;
 
@@ -247,13 +303,16 @@ void fill_nonzero_elems(int nonzero_elems) {
 }
 
 void single_threaded_iters() {
-	fill_nonzero_elems(10);
+	fill_nonzero_elems(8);
 	shuffle(result, 16);
 
-	printf("Timing single-threaded accelerated bogosort with 10 nonzero elements\n");
+	print_arr(result, 16);
+
+	printf("Timing single-threaded accelerated bogosort with 8 nonzero elements\n");
 	clear_total_iters();
 
 	avx2_bogosort(NULL);
+	print_arr(result,16);
 
 	summarize_total_iters();
 }

@@ -56,3 +56,4 @@ dkms.conf
 *.trace/**
 
 bogosort
+perf_playground
