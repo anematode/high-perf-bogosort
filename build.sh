@@ -1,1 +1,1 @@
-gcc bogosort.c -o bogosort -O2 -march=native -pthread -g 
+gcc bogosort.c -o bogosort -O2 -march=native -pthread -g -Wall

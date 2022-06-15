@@ -19,25 +19,85 @@
 #include <sched.h>
 #endif
 
-#define THREAD_COUNT 8
+#define MAX_THREADS 8
 // Whether to attempt to force threads to certain cores to prevent switching
+#define attempt_taskset 1
+
+#ifndef __linux__
+#if attempt_taskset
+#warning Taskset does not work on non-Linux systems; attempt_taskset will be set to 0
+#undef attempt_taskset
 #define attempt_taskset 0
+#endif
+#endif
+
 static uint64_t SEED = 1;
 
 static uint64_t r = 3;
 static int result[16];
 pthread_mutex_t result_mutex;
 
-static uint64_t total_iters[THREAD_COUNT];
+static uint64_t total_iters[MAX_THREADS];
 static volatile int complete;  // if true, all threads stop working
 
+struct timespec last_cleared;
+static int taskset_enabled;
+
+void set_taskset_enabled(int e) {
+	if (e && !attempt_taskset) {
+		printf("Tried to enable taskset when there was no option to do so; please set attempt_taskset to 1 if on Linux");
+		abort();
+	}
+	taskset_enabled = e;
+}
+
+void summarize_ts_enabled() {
+	printf("Taskset is enabled: %s\n", taskset_enabled ? "yes" : "no");
+}
+
+uint64_t sum_total_iters() {
+	uint64_t total = 0;
+	for (int i = 0; i < MAX_THREADS; ++i)
+		total += total_iters[i];
+
+	return total;
+}
+
+void clear_total_iters() {
+	memset(total_iters, 0, MAX_THREADS);
+	clock_gettime(CLOCK_MONOTONIC, &last_cleared);
+}
+
+double get_elapsed();
+
+void summarize_total_iters() {
+	uint64_t sum_iters = 0;
+	for (int i = 0; i < MAX_THREADS; ++i) {
+		uint64_t iters = total_iters[i];
+
+		sum_iters += iters;
+		if (iters) printf("Thread %i iters: %llu\n", i, iters);
+	}
+
+	printf("\nTotal iters: %llu\n", sum_iters);
+	
+	struct timespec finish;
+	clock_gettime(CLOCK_MONOTONIC, &finish);
+
+	double elapsed = (finish.tv_sec - last_cleared.tv_sec);
+	elapsed += (finish.tv_nsec - last_cleared.tv_nsec) / 1000000000.0;
+	
+	printf("ns per iter: %f\n", elapsed / sum_iters * 1.0e9);
+}
+
+// Print victory
 static int print_which_thread_found;
 
+#ifdef __linux__
 int core_count() {
 	return sysconf(_SC_NPROCESSORS_ONLN);
 }
 
-#ifdef __linux__
 void taskset_thread_self(int core_id) {
 	if (core_id >= core_count()) {
 		// oops
@@ -92,7 +152,7 @@ void bogosort(int* a, int len) {
 		iters++;
 	}
 
-	total_iters[0] = iters;
+	total_iters[0] += iters;
 }
 
 // Credit: https://stackoverflow.com/a/49154279/13458117
@@ -137,7 +197,8 @@ void* avx2_bogosort(void* _thread_id) {
 
 #ifdef __linux__
 #if attempt_taskset
-	taskset_thread_self(thread_id); // one logical core per physical core
+	if (taskset_enabled)
+		taskset_thread_self(thread_id); // one logical core per physical core
 #endif
 #endif
 
@@ -176,25 +237,22 @@ void* avx2_bogosort(void* _thread_id) {
 		shuffle2 = get_8x32_shuffle((r >> 12) % SHUFFLE_COUNT);
 		shuffle3 = get_8x32_shuffle((r >> 24) % SHUFFLE_COUNT);
 
-		shuffle1 = _mm256_permutevar8x32_epi32(shuffle1, shuffle3);
-
 		interleaved1 = _mm256_unpackhi_epi32(shuffled1, shuffled2);
 		interleaved2 = _mm256_unpacklo_epi32(shuffled2, shuffled1);
 
-		// Do it again
-		shuffle1 = get_8x32_shuffle((r >> 36) % SHUFFLE_COUNT);
-		shuffle2 = get_8x32_shuffle((r >> 48) % SHUFFLE_COUNT);
-
-		shuffled1 = _mm256_permutevar8x32_epi32(part1, shuffle1);
-		shuffled2 = _mm256_permutevar8x32_epi32(part2, shuffle2);
-
+		shuffled1 = _mm256_permutevar8x32_epi32(interleaved1, shuffle1);
+		shuffled2 = _mm256_permutevar8x32_epi32(interleaved2, shuffle2);
+	
 		part1 = _mm256_unpackhi_epi32(shuffled1, shuffled2);
-		part2 = _mm256_unpacklo_epi32(shuffled2, shuffled1);
+		part2 = _mm256_unpacklo_epi32(shuffled2, shuffled1);	
+
+		shuffle1 = get_8x32_shuffle((r >> 36) % SHUFFLE_COUNT);
+		shuffle2 = _mm256_permutevar8x32_epi32(get_8x32_shuffle((r >> 48) % SHUFFLE_COUNT), shuffle3);
 
 		// check sorted
 		p1sh = _mm256_permutevar8x32_epi32(part1, shift_right);
 		p1sorted = _mm256_and_si256(_mm256_cmpgt_epi32(p1sh, part1), mask_highest);
-
+	
 		if (!_mm256_testz_si256(p1sorted, p1sorted)) {
 			continue;
 		}
@@ -224,7 +282,7 @@ void* avx2_bogosort(void* _thread_id) {
 	}
 
 	pthread_mutex_lock(&result_mutex);
-	total_iters[thread_id] = iters;
+	total_iters[thread_id] += iters;
 	pthread_mutex_unlock(&result_mutex);
 
 	return NULL;
@@ -240,47 +298,61 @@ void fill_nonzero_elems(int nonzero_elems) {
 	}
 }
 
-struct timespec start, finish;
+#define MAX_TIMER_DEPTH 10
+
+struct timespec start_a[MAX_TIMER_DEPTH];
+static int timespec_i;
 double elapsed;
 
-
 void time_start() {
-	clock_gettime(CLOCK_MONOTONIC, &start);
+	clock_gettime(CLOCK_MONOTONIC, &start_a[timespec_i]);
+	timespec_i++;
 }
 
-void time_end(const char* msg) {
-	if (!msg) msg = "(unnamed)";
-
+double grab_elapsed() {
+	struct timespec finish;
 	clock_gettime(CLOCK_MONOTONIC, &finish);
+	struct timespec start = start_a[timespec_i - 1];
 
 	elapsed = (finish.tv_sec - start.tv_sec);
 	elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
 	
-	printf("Timer %s finished: %f seconds\n", msg, elapsed);
+	return elapsed;
+}
+
+void time_end(const char* msg) {
+	if (msg) {
+
+	printf("Timer %s finished: %f seconds\n", msg, grab_elapsed());
+	}
+	timespec_i--;
 }
 
 // Multithread AVX2 bogosort
-void run_avx2_bogosort() {
+void run_avx2_bogosort(int thread_count) {
 	complete = 0;
 
-	pthread_t threads[THREAD_COUNT];
-	int thread_ids[THREAD_COUNT];
+	pthread_t threads[MAX_THREADS];
+	int thread_ids[MAX_THREADS];
 
-	for (int i = 0; i < THREAD_COUNT; ++i) {
+	for (int i = 0; i < thread_count; ++i) {
 		thread_ids[i] = i;
 		pthread_create(threads + i, NULL, &avx2_bogosort, (void*) &thread_ids[i]);
 	}
 
-	for (int i = 0; i < THREAD_COUNT; ++i) {
+	for (int i = 0; i < thread_count; ++i) {
 		pthread_join(threads[i], NULL);
 	}
 }
 
 // Bogosort n nonzero elements with 16 - n zero elements from n = 0 to 9
-void run_bogosort_100_nonzero() {	
-	int trials = 20;
-	char o[100];
-	for (int nonzero = 0; nonzero < 9; ++nonzero) {
+void run_bogosort_nonzero(int trials, int min, int max) {	
+	time_start();
+
+	printf("Running bogosort_nonzero, 16 elems, %i trials, minimum count %i, maximum count %i\n", trials, min, max);
+	printf("Nonzero elems,Iters,Time in s,Average ns per iter,Average ms per case\n");
+
+	for (int nonzero = min; nonzero < max; ++nonzero) {
 		time_start();
 
 		for (int i = 0; i < trials; ++i) {
@@ -290,35 +362,49 @@ void run_bogosort_100_nonzero() {
 			bogosort(result, 16);
 		}
 
-		sprintf(o, "%i trials of standard bogosort, 16 elems, nonzero = %i", trials, nonzero);
-		time_end(o);
+		double e = grab_elapsed();
+	        printf("%i,%i,%f,%f,%f\n", nonzero, trials, e, e / sum_total_iters() * 1.0e9, e / trials * 1.0e3);
+		time_end(NULL);
 	}
+
+        summarize_total_iters();
+	time_end("bogosort_nonzero");
 }
 
 // Bogosort n elements from n = 0 to 9
-void run_bogosort_100() {
-	int trials = 100;
-	char o[100];
-	for (int len = 0; len < 9; ++len) {
+void run_bogosort(int trials, int min, int max) {
+	time_start();
+
+	printf("Running bogosort, %i trials, minimum count %i, maximum count %i\n", trials, min, max);
+	printf("Elems,Iters,Time in s,Average ns per iter,Average ms per case\n");
+
+	for (int len = min; len < max; ++len) {
 		time_start();
 
 		for (int i = 0; i < trials; ++i) {
 			fill_nonzero_elems(len);
 			shuffle(result, len);
 
-			bogosort(result, 16);
+			bogosort(result, len);
 		}
 
-		sprintf(o, "%i trials of standard bogosort, n = %i", trials, len);
-		time_end(o);
+		double e = grab_elapsed();
+	        printf("%i,%i,%f,%f,%f\n", len, trials, e, e / sum_total_iters() * 1.0e9, e / trials * 1.0e3);
+		time_end(NULL);
 	}
+        
+	summarize_total_iters();
+	time_end("bogosort");
 }
 
-void run_avx2_bogosort_100_nonzero()  {
-	int trials = 20;
-	char o[100];
+void run_avx2_bogosort_nonzero(int trials, int min, int max, int thread_count)  {
+	time_start();
 
-	for (int nonzero = 9; nonzero < 10; ++nonzero) {
+	printf("Running accelerated bogosort_nonzero, %i trials, minimum count %i, maximum count %i, thread count %i\n", trials, min, max, thread_count);
+	summarize_ts_enabled();
+	printf("Nonzero elems,Iters,Time in s,Average ns per iter,Average ms per case\n");
+
+	for (int nonzero = min; nonzero < max; ++nonzero) {
 		time_start();
 
 		for (int i = 0; i < trials; ++i) {
@@ -326,46 +412,84 @@ void run_avx2_bogosort_100_nonzero()  {
 			fill_nonzero_elems(nonzero);
 			shuffle(result, 16);
 			
-			run_avx2_bogosort();
+			run_avx2_bogosort(thread_count);
 		}
 
-		sprintf(o, "%i trials of AVX2 bogosort, nonzero = %i", trials, nonzero);
-		time_end(o);
+		double e = grab_elapsed();
+	        printf("%i,%i,%f,%f,%f\n", nonzero, trials, e, e / sum_total_iters() * 1.0e9, e / trials * 1.0e3);
+		time_end(NULL);
 	}
+	
+	summarize_total_iters();
+	time_end("accelerated bogosort_nonzero");
 }
 
-void run_full_avx2_bogosort() {
-	print_which_thread_found = 1;
+void run_full_avx2_bogosort(int num_threads) {
+	time_start();
 
-	fill_nonzero_elems(9);
+	printf("Running full 16-element accelerated bogosort");
+	print_which_thread_found = 1;
+	summarize_ts_enabled();
+
+	fill_nonzero_elems(16);
 	shuffle(result, 16);
 
 	printf("Unsorted array: ");
 	print_arr(result, 16);
 
-	run_avx2_bogosort();
+	run_avx2_bogosort(num_threads);
 
 	printf("Sorted array: ");
 	print_arr(result, 16);
 
-	uint64_t sum_iters = 0;
-	for (int i = 0; i < THREAD_COUNT; ++i) {
-		uint64_t iters = total_iters[i];
+	summarize_total_iters();
+	time_end("accelerated bogosort 16 elements");
+}
 
-		sum_iters += iters;
-		printf("Thread %i iters: %llu\n", i, iters);
+void standard_battery_non_accel() {
+	clear_total_iters();
+	run_bogosort(100, 0, 11);
+	clear_total_iters();
+	run_bogosort_nonzero(100, 0, 7);
+	clear_total_iters();
+	run_bogosort_nonzero(20, 7, 8);
+	clear_total_iters();
+}
+
+void standard_battery() {
+	time_start();
+
+	standard_battery_non_accel();
+
+	int thread_counts[] = { 1, 2, 4, 8, 4, 8, 4, 8 };
+	int trialss[] = { 100, 100, 100, 100, 20, 20, 1, 1 };
+	int max_cnts[] = { 8, 8, 9, 9, 10, 10, 11, 11 };
+	int min_cnts[] = { 0, 0, 0, 0, 9, 9, 10, 10 }; 
+
+	for (int i = 0; i < 8; ++i) {
+		int th_count = thread_counts[i], max_cnt = max_cnts[i], min_cnt = min_cnts[i], trials = trialss[i];
+
+		set_taskset_enabled(0);	
+		run_avx2_bogosort_nonzero(trials, min_cnt, max_cnt, th_count);
+		clear_total_iters();
+
+#if attempt_taskset
+		set_taskset_enabled(1);
+		run_avx2_bogosort_nonzero(trials, min_cnt, max_cnt, th_count);
+		clear_total_iters();
+#endif
 	}
 
-	printf("\nTotal iters: %llu\n", sum_iters);
-
+	time_end("standard battery");
 }
 
 int main() {
-	printf("Threads (AVX2 only): %i\n", THREAD_COUNT);
+	printf("Max threads (accelerated only): %i\n", MAX_THREADS);
+	printf("Compiled with taskset: %s\n", attempt_taskset ? "yes" : "no");
 
 	time_start();
 	fill_shuffles();
 	time_end("filled shuffles");
 
-	run_avx2_bogosort_100_nonzero();
+	standard_battery();
 }
