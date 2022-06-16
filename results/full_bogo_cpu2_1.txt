@@ -18,3 +18,19 @@ Thread 7 iters: 904298470851
 Total iters: 7211958554608
 One iter every ns: 1.075142
 Timer accelerated bogosort 16 elements finished: 7753.875998 seconds
+
+ Performance counter stats for './bogosort':
+
+     61,680,274.76 msec task-clock                #    7.955 CPUs utilized          
+         2,989,483      context-switches          #   48.467 /sec                   
+                 6      cpu-migrations            #    0.000 /sec                   
+               102      page-faults               #    0.002 /sec                   
+150,765,568,904,167      cycles                    #    2.444 GHz                    
+259,716,534,063,250      instructions              #    1.72  insn per cycle         
+21,652,581,484,297      branches                  #  351.045 M/sec                  
+       721,227,148      branch-misses             #    0.00% of all branches        
+
+    7753.877594190 seconds time elapsed
+
+   61659.200099000 seconds user
+      24.892069000 seconds sys

@@ -1,0 +1,36 @@
+Max threads (accelerated only): 8
+Compiled with taskset: yes
+Timer filled shuffles finished: 0.000919 seconds
+Running full 16-element accelerated bogosort
+Taskset is enabled: yes
+Unsorted array: 11 15 4 7 6 10 13 16 14 12 2 1 8 3 9 5 
+Thread 0 found!
+Sorted array: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 
+Thread 0 iters: 900617430998
+Thread 1 iters: 899675831963
+Thread 2 iters: 901626117503
+Thread 3 iters: 900156649275
+Thread 4 iters: 901109119755
+Thread 5 iters: 895618474173
+Thread 6 iters: 902350348167
+Thread 7 iters: 901441693926
+
+Total iters: 7202595665760
+One iter every ns: 1.070213
+Timer accelerated bogosort 16 elements finished: 7708.313892 seconds
+
+ Performance counter stats for './bogosort':
+
+     61,415,209.24 msec task-clock                #    7.967 CPUs utilized          
+         2,520,523      context-switches          #   41.041 /sec                   
+                 7      cpu-migrations            #    0.000 /sec                   
+                97      page-faults               #    0.002 /sec                   
+150,598,555,141,890      cycles                    #    2.452 GHz                    
+259,373,726,545,307      instructions              #    1.72  insn per cycle         
+21,623,186,415,164      branches                  #  352.082 M/sec                  
+       664,763,375      branch-misses             #    0.00% of all branches        
+
+    7708.315796034 seconds time elapsed
+
+   61396.275053000 seconds user
+      22.479885000 seconds sys
