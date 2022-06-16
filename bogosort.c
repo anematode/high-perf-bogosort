@@ -571,7 +571,11 @@ int main() {
 	fill_shuffles();
 	time_end("filled shuffles");
 
+set_taskset_enabled(1);	
+		run_avx2_bogosort_nonzero(20, 9, 10, 8);
+		clear_total_iters();
+
 
 	// single_threaded_iters();
-	standard_battery();
+//	standard_battery();
 }

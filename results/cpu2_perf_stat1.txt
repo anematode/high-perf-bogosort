@@ -1,0 +1,40 @@
+Max threads (accelerated only): 8
+Compiled with taskset: yes
+Timer filled shuffles finished: 0.000744 seconds
+
+
+
+
+Running accelerated bogosort_nonzero, 20 trials, minimum count 9, maximum count 10, thread count 8
+Taskset is enabled: yes
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+9,20,87.247378,1.054896,4362.368878,8
+Thread 0 iters: 10406364452
+Thread 1 iters: 10183596684
+Thread 2 iters: 10500081093
+Thread 3 iters: 10455554518
+Thread 4 iters: 10036383051
+Thread 5 iters: 10339743399
+Thread 6 iters: 10450465526
+Thread 7 iters: 10334897565
+
+Total iters: 82707086288
+One iter every ns: 1.054897
+Timer accelerated bogosort_nonzero finished: 87.247453 seconds
+
+ Performance counter stats for './bogosort -o results/bogosort_8_threads_cpu2_stats.perf':
+
+        681,903.05 msec task-clock                #    7.816 CPUs utilized          
+            73,366      context-switches          #  107.590 /sec                   
+               133      cpu-migrations            #    0.195 /sec                   
+               332      page-faults               #    0.487 /sec                   
+ 1,707,544,912,661      cycles                    #    2.504 GHz                    
+ 2,897,067,216,733      instructions              #    1.70  insn per cycle         
+   165,834,572,574      branches                  #  243.194 M/sec                  
+       106,075,416      branch-misses             #    0.06% of all branches        
+
+      87.249133816 seconds time elapsed
+
+     681.302841000 seconds user
+       0.670899000 seconds sys
+
