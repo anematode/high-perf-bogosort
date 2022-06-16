@@ -1,0 +1,762 @@
+Max threads (accelerated only): 8
+Compiled with taskset: yes
+Timer filled shuffles finished: 0.002846 seconds
+Unsorted array: 7 0 0 0 0 8 2 10 0 9 3 0 4 1 6 5 
+Timing single-threaded accelerated bogosort with 10 nonzero elements
+Sorted array: 0 0 0 0 0 0 1 2 3 4 5 6 7 8 9 10 
+Thread 0 iters: 3583727068
+
+Total iters: 3583727068
+One iter every ns: 4.131493
+Timer accelerated bogosort 10 nonzero elements single threaded finished: 14.806204 seconds
+
+
+
+
+Running accelerated bogosort_nonzero, 100 trials, minimum count 0, maximum count 8, thread count 1
+Taskset is enabled: no
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+0,100,0.002368,23682.770000,0.023683,1
+Thread 0 iters: 100
+
+Total iters: 100
+One iter every ns: 23862.690000
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+1,100,0.001872,1276.068848,0.018720,1
+Thread 0 iters: 1467
+
+Total iters: 1467
+One iter every ns: 1283.457396
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+2,100,0.001692,69.026960,0.016924,1
+Thread 0 iters: 24518
+
+Total iters: 24518
+One iter every ns: 69.406477
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+3,100,0.003552,11.080602,0.035522,1
+Thread 0 iters: 320577
+
+Total iters: 320577
+One iter every ns: 11.107562
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+4,100,0.025334,6.961850,0.253343,1
+Thread 0 iters: 3639021
+
+Total iters: 3639021
+One iter every ns: 6.966543
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+5,100,0.247668,4.774884,2.476676,1
+Thread 0 iters: 51868833
+
+Total iters: 51868833
+One iter every ns: 4.775200
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+6,100,2.669614,4.346201,26.696141,1
+Thread 0 iters: 614240833
+
+Total iters: 614240833
+One iter every ns: 4.346230
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+7,100,21.025249,4.204491,210.252494,1
+Thread 0 iters: 5000664396
+
+Total iters: 5000664396
+One iter every ns: 4.204495
+Timer accelerated bogosort_nonzero finished: 23.977479 seconds
+
+
+
+
+Running accelerated bogosort_nonzero, 100 trials, minimum count 0, maximum count 8, thread count 1
+Taskset is enabled: yes
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+0,100,0.002881,28814.200000,0.028814,1
+Thread 0 iters: 100
+
+Total iters: 100
+One iter every ns: 28947.930000
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+1,100,0.002206,1128.428133,0.022061,1
+Thread 0 iters: 1955
+
+Total iters: 1955
+One iter every ns: 1135.379028
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+2,100,0.002297,100.126640,0.022968,1
+Thread 0 iters: 22939
+
+Total iters: 22939
+One iter every ns: 100.511749
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+3,100,0.004448,12.946067,0.044482,1
+Thread 0 iters: 343595
+
+Total iters: 343595
+One iter every ns: 12.995157
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+4,100,0.032324,6.918626,0.323242,1
+Thread 0 iters: 4672052
+
+Total iters: 4672052
+One iter every ns: 6.922415
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+5,100,0.252621,4.874043,2.526215,1
+Thread 0 iters: 51829959
+
+Total iters: 51829959
+One iter every ns: 4.874363
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+6,100,1.988941,4.371811,19.889413,1
+Thread 0 iters: 454946821
+
+Total iters: 454946821
+One iter every ns: 4.371850
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+7,100,26.744464,4.224243,267.444637,1
+Thread 0 iters: 6331185582
+
+Total iters: 6331185582
+One iter every ns: 4.224246
+Timer accelerated bogosort_nonzero finished: 29.030320 seconds
+
+
+
+
+Running accelerated bogosort_nonzero, 100 trials, minimum count 0, maximum count 8, thread count 2
+Taskset is enabled: no
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+0,100,0.003256,32555.800000,0.032556,2
+Thread 0 iters: 100
+
+Total iters: 100
+One iter every ns: 32727.510000
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+1,100,0.002329,1591.009563,0.023292,2
+Thread 0 iters: 1464
+
+Total iters: 1464
+One iter every ns: 1600.652322
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+2,100,0.002308,92.371973,0.023077,2
+Thread 0 iters: 24417
+Thread 1 iters: 566
+
+Total iters: 24983
+One iter every ns: 92.894808
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+3,100,0.003265,10.792620,0.032650,2
+Thread 0 iters: 194534
+Thread 1 iters: 107983
+
+Total iters: 302517
+One iter every ns: 10.842118
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+4,100,0.015056,3.435483,0.150560,2
+Thread 0 iters: 2265024
+Thread 1 iters: 2117481
+
+Total iters: 4382505
+One iter every ns: 3.440324
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+5,100,0.129622,2.494380,1.296223,2
+Thread 0 iters: 26109764
+Thread 1 iters: 25855990
+
+Total iters: 51965754
+One iter every ns: 2.494715
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+6,100,1.132095,2.181264,11.320947,2
+Thread 0 iters: 260271928
+Thread 1 iters: 258736526
+
+Total iters: 519008454
+One iter every ns: 2.181302
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+7,100,12.489794,2.104696,124.897939,2
+Thread 0 iters: 2970654770
+Thread 1 iters: 2963596718
+
+Total iters: 5934251488
+One iter every ns: 2.104699
+Timer accelerated bogosort_nonzero finished: 13.777873 seconds
+
+
+
+
+Running accelerated bogosort_nonzero, 100 trials, minimum count 0, maximum count 8, thread count 2
+Taskset is enabled: yes
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+0,100,0.005127,51273.270000,0.051273,2
+Thread 0 iters: 84
+Thread 1 iters: 16
+
+Total iters: 100
+One iter every ns: 51475.080000
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+1,100,0.003633,2168.680597,0.036325,2
+Thread 0 iters: 1675
+
+Total iters: 1675
+One iter every ns: 2177.946269
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+2,100,0.003556,162.728113,0.035558,2
+Thread 0 iters: 21538
+Thread 1 iters: 313
+
+Total iters: 21851
+One iter every ns: 163.495355
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+3,100,0.004873,15.534974,0.048730,2
+Thread 0 iters: 235413
+Thread 1 iters: 78264
+
+Total iters: 313677
+One iter every ns: 15.583524
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+4,100,0.015034,4.042507,0.150337,2
+Thread 0 iters: 1931838
+Thread 1 iters: 1787068
+
+Total iters: 3718906
+One iter every ns: 4.046487
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+5,100,0.103611,2.488223,1.036109,2
+Thread 0 iters: 20966832
+Thread 1 iters: 20673695
+
+Total iters: 41640527
+One iter every ns: 2.488604
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+6,100,1.402038,2.249138,14.020380,2
+Thread 0 iters: 312241997
+Thread 1 iters: 311124732
+
+Total iters: 623366729
+One iter every ns: 2.249169
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+7,100,13.076176,2.338416,130.761757,2
+Thread 0 iters: 2800811310
+Thread 1 iters: 2791083542
+
+Total iters: 5591894852
+One iter every ns: 2.338420
+Timer accelerated bogosort_nonzero finished: 14.614198 seconds
+
+
+
+
+Running accelerated bogosort_nonzero, 100 trials, minimum count 0, maximum count 9, thread count 4
+Taskset is enabled: no
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+0,100,0.004993,49925.340000,0.049925,4
+Thread 0 iters: 100
+
+Total iters: 100
+One iter every ns: 50138.800000
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+1,100,0.004867,2675.582738,0.048669,4
+Thread 0 iters: 1819
+
+Total iters: 1819
+One iter every ns: 2685.831226
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+2,100,0.004656,199.277502,0.046555,4
+Thread 0 iters: 22535
+Thread 1 iters: 827
+
+Total iters: 23362
+One iter every ns: 200.006207
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+3,100,0.005311,16.983441,0.053109,4
+Thread 0 iters: 184943
+Thread 1 iters: 90518
+Thread 2 iters: 30912
+Thread 3 iters: 6335
+
+Total iters: 312708
+One iter every ns: 17.057290
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+4,100,0.011940,2.835880,0.119398,4
+Thread 0 iters: 1313991
+Thread 1 iters: 1123563
+Thread 2 iters: 968554
+Thread 3 iters: 804161
+
+Total iters: 4210269
+One iter every ns: 2.840642
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+5,100,0.091772,1.470242,0.917720,4
+Thread 0 iters: 16002791
+Thread 1 iters: 15649567
+Thread 2 iters: 15500613
+Thread 3 iters: 15266683
+
+Total iters: 62419654
+One iter every ns: 1.470596
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+6,100,0.754355,1.478295,7.543552,4
+Thread 0 iters: 128729648
+Thread 1 iters: 127634592
+Thread 2 iters: 127502076
+Thread 3 iters: 126420969
+
+Total iters: 510287285
+One iter every ns: 1.478345
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+7,100,7.347090,1.461721,73.470901,4
+Thread 0 iters: 1262377892
+Thread 1 iters: 1255326564
+Thread 2 iters: 1251636466
+Thread 3 iters: 1256987308
+
+Total iters: 5026328230
+One iter every ns: 1.461727
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+8,100,80.154416,1.449167,801.544159,4
+Thread 0 iters: 13900651330
+Thread 1 iters: 13818668717
+Thread 2 iters: 13751717112
+Thread 3 iters: 13839661642
+
+Total iters: 55310698801
+One iter every ns: 1.449167
+Timer accelerated bogosort_nonzero finished: 88.379626 seconds
+
+
+
+
+Running accelerated bogosort_nonzero, 100 trials, minimum count 0, maximum count 9, thread count 4
+Taskset is enabled: yes
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+0,100,0.007517,75165.390000,0.075165,4
+Thread 0 iters: 91
+Thread 1 iters: 5
+Thread 2 iters: 3
+Thread 3 iters: 1
+
+Total iters: 100
+One iter every ns: 75437.650000
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+1,100,0.007421,5319.729749,0.074210,4
+Thread 0 iters: 1383
+Thread 1 iters: 11
+Thread 3 iters: 1
+
+Total iters: 1395
+One iter every ns: 5337.129032
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+2,100,0.006940,357.061998,0.069399,4
+Thread 0 iters: 19319
+Thread 1 iters: 117
+
+Total iters: 19436
+One iter every ns: 358.255299
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+3,100,0.008395,23.011803,0.083953,4
+Thread 0 iters: 199793
+Thread 1 iters: 104326
+Thread 2 iters: 39434
+Thread 3 iters: 21273
+
+Total iters: 364826
+One iter every ns: 23.073578
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+4,100,0.017098,3.582646,0.170976,4
+Thread 0 iters: 1512139
+Thread 1 iters: 1254048
+Thread 2 iters: 943366
+Thread 3 iters: 1062798
+
+Total iters: 4772351
+One iter every ns: 3.587534
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+5,100,0.088393,1.804255,0.883927,4
+Thread 0 iters: 12638126
+Thread 1 iters: 12145678
+Thread 2 iters: 11609818
+Thread 3 iters: 12597644
+
+Total iters: 48991266
+One iter every ns: 1.804748
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+6,100,0.893889,1.523272,8.938893,4
+Thread 0 iters: 146439914
+Thread 1 iters: 147652923
+Thread 2 iters: 146262630
+Thread 3 iters: 146466528
+
+Total iters: 586821995
+One iter every ns: 1.523316
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+7,100,7.686416,1.469950,76.864161,4
+Thread 0 iters: 1289742788
+Thread 1 iters: 1316783047
+Thread 2 iters: 1308346719
+Thread 3 iters: 1314158550
+
+Total iters: 5229031104
+One iter every ns: 1.469956
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+8,100,74.521000,1.439453,745.209995,4
+Thread 0 iters: 12954502048
+Thread 1 iters: 12885365888
+Thread 2 iters: 12965990321
+Thread 3 iters: 12964495260
+
+Total iters: 51770353517
+One iter every ns: 1.439454
+Timer accelerated bogosort_nonzero finished: 83.237319 seconds
+
+
+
+
+Running accelerated bogosort_nonzero, 100 trials, minimum count 0, maximum count 9, thread count 8
+Taskset is enabled: no
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+0,100,0.014270,142697.400000,0.142697,8
+Thread 0 iters: 100
+
+Total iters: 100
+One iter every ns: 142906.450000
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+1,100,0.016201,9257.805714,0.162012,8
+Thread 0 iters: 1717
+Thread 1 iters: 33
+
+Total iters: 1750
+One iter every ns: 9269.398286
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+2,100,0.014569,556.805549,0.145694,8
+Thread 0 iters: 25854
+Thread 1 iters: 312
+
+Total iters: 26166
+One iter every ns: 557.686425
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+3,100,0.016183,50.182219,0.161828,8
+Thread 0 iters: 203103
+Thread 1 iters: 82845
+Thread 2 iters: 30710
+Thread 3 iters: 5822
+
+Total iters: 322480
+One iter every ns: 50.265809
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+4,100,0.020411,4.707612,0.204106,8
+Thread 0 iters: 1032396
+Thread 1 iters: 981297
+Thread 2 iters: 825047
+Thread 3 iters: 580402
+Thread 4 iters: 401748
+Thread 5 iters: 247492
+Thread 6 iters: 161541
+Thread 7 iters: 105726
+
+Total iters: 4335649
+One iter every ns: 4.713418
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+5,100,0.065028,1.452164,0.650276,8
+Thread 0 iters: 6396941
+Thread 1 iters: 6360582
+Thread 2 iters: 6227473
+Thread 3 iters: 5883221
+Thread 4 iters: 5530000
+Thread 5 iters: 5236118
+Thread 6 iters: 4687139
+Thread 7 iters: 4458310
+
+Total iters: 44779784
+One iter every ns: 1.452741
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+6,100,0.645963,1.162862,6.459630,8
+Thread 0 iters: 71060098
+Thread 1 iters: 70536663
+Thread 2 iters: 71211476
+Thread 3 iters: 70690456
+Thread 4 iters: 69732855
+Thread 5 iters: 69092275
+Thread 6 iters: 65008376
+Thread 7 iters: 68161848
+
+Total iters: 555494047
+One iter every ns: 1.162914
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+7,100,6.537670,1.133030,65.376698,8
+Thread 0 iters: 721361771
+Thread 1 iters: 710850785
+Thread 2 iters: 723029533
+Thread 3 iters: 728070113
+Thread 4 iters: 727402435
+Thread 5 iters: 718408342
+Thread 6 iters: 713479746
+Thread 7 iters: 727473533
+
+Total iters: 5770076258
+One iter every ns: 1.133035
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+8,100,56.036550,1.115112,560.365503,8
+Thread 0 iters: 6313752631
+Thread 1 iters: 6262774340
+Thread 2 iters: 6304428868
+Thread 3 iters: 6287116564
+Thread 4 iters: 6303019657
+Thread 5 iters: 6243958376
+Thread 6 iters: 6202537449
+Thread 7 iters: 6334375283
+
+Total iters: 50251963168
+One iter every ns: 1.115112
+Timer accelerated bogosort_nonzero finished: 63.367105 seconds
+
+
+
+
+Running accelerated bogosort_nonzero, 100 trials, minimum count 0, maximum count 9, thread count 8
+Taskset is enabled: yes
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+0,100,0.020343,203432.270000,0.203432,8
+Thread 0 iters: 96
+Thread 1 iters: 3
+Thread 2 iters: 1
+
+Total iters: 100
+One iter every ns: 203703.190000
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+1,100,0.023067,12563.480937,0.230666,8
+Thread 0 iters: 1794
+Thread 1 iters: 27
+Thread 2 iters: 15
+
+Total iters: 1836
+One iter every ns: 12577.468410
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+2,100,0.022900,746.535909,0.229000,8
+Thread 0 iters: 25251
+Thread 1 iters: 4022
+Thread 2 iters: 123
+Thread 3 iters: 1279
+
+Total iters: 30675
+One iter every ns: 747.486683
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+3,100,0.021859,58.959630,0.218588,8
+Thread 0 iters: 155614
+Thread 1 iters: 141843
+Thread 2 iters: 47735
+Thread 3 iters: 25115
+Thread 4 iters: 435
+
+Total iters: 370742
+One iter every ns: 59.061158
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+4,100,0.025209,5.548936,0.252086,8
+Thread 0 iters: 1009438
+Thread 1 iters: 886965
+Thread 2 iters: 717505
+Thread 3 iters: 752625
+Thread 4 iters: 429571
+Thread 5 iters: 323815
+Thread 6 iters: 250371
+Thread 7 iters: 172680
+
+Total iters: 4542970
+One iter every ns: 5.556332
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+5,100,0.089359,1.501407,0.893586,8
+Thread 0 iters: 7994057
+Thread 1 iters: 7590072
+Thread 2 iters: 7095057
+Thread 3 iters: 7949009
+Thread 4 iters: 7552707
+Thread 5 iters: 7310054
+Thread 6 iters: 7414716
+Thread 7 iters: 6610876
+
+Total iters: 59516548
+One iter every ns: 1.501858
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+6,100,0.632845,1.169068,6.328447,8
+Thread 0 iters: 69568085
+Thread 1 iters: 67824010
+Thread 2 iters: 62604195
+Thread 3 iters: 69184477
+Thread 4 iters: 68406009
+Thread 5 iters: 69660256
+Thread 6 iters: 69281823
+Thread 7 iters: 64795125
+
+Total iters: 541323980
+One iter every ns: 1.169135
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+7,100,7.498902,1.129994,74.989019,8
+Thread 0 iters: 841360139
+Thread 1 iters: 844169456
+Thread 2 iters: 838893887
+Thread 3 iters: 806609425
+Thread 4 iters: 835527034
+Thread 5 iters: 818600115
+Thread 6 iters: 829549391
+Thread 7 iters: 821523682
+
+Total iters: 6636233129
+One iter every ns: 1.129998
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+8,100,52.829328,1.112614,528.293280,8
+Thread 0 iters: 5965136413
+Thread 1 iters: 5936567201
+Thread 2 iters: 5933466792
+Thread 3 iters: 5904571701
+Thread 4 iters: 5990564901
+Thread 5 iters: 5896446982
+Thread 6 iters: 5965366756
+Thread 7 iters: 5890042317
+
+Total iters: 47482163063
+One iter every ns: 1.112615
+Timer accelerated bogosort_nonzero finished: 61.164118 seconds
+
+
+
+
+Running accelerated bogosort_nonzero, 20 trials, minimum count 9, maximum count 10, thread count 4
+Taskset is enabled: no
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+9,20,121.153100,1.436623,6057.655003,4
+Thread 0 iters: 21164269402
+Thread 1 iters: 21099013506
+Thread 2 iters: 20979681362
+Thread 3 iters: 21088903802
+
+Total iters: 84331868072
+One iter every ns: 1.436623
+Timer accelerated bogosort_nonzero finished: 121.153136 seconds
+
+
+
+
+Running accelerated bogosort_nonzero, 20 trials, minimum count 9, maximum count 10, thread count 4
+Taskset is enabled: yes
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+9,20,163.862734,1.425784,8193.136714,4
+Thread 0 iters: 28687377363
+Thread 1 iters: 28701177092
+Thread 2 iters: 28770788070
+Thread 3 iters: 28768818599
+
+Total iters: 114928161124
+One iter every ns: 1.425784
+Timer accelerated bogosort_nonzero finished: 163.862772 seconds
+
+
+
+
+Running accelerated bogosort_nonzero, 20 trials, minimum count 9, maximum count 10, thread count 8
+Taskset is enabled: no
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+9,20,99.813082,1.110747,4990.654087,8
+Thread 0 iters: 11259517644
+Thread 1 iters: 11285029643
+Thread 2 iters: 11208955588
+Thread 3 iters: 11233892766
+Thread 4 iters: 11264568605
+Thread 5 iters: 11195577207
+Thread 6 iters: 11147840243
+Thread 7 iters: 11265813391
+
+Total iters: 89861195087
+One iter every ns: 1.110748
+Timer accelerated bogosort_nonzero finished: 99.813121 seconds
+
+
+
+
+Running accelerated bogosort_nonzero, 20 trials, minimum count 9, maximum count 10, thread count 8
+Taskset is enabled: yes
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+9,20,104.406989,1.108224,5220.349448,8
+Thread 0 iters: 11697632937
+Thread 1 iters: 11729676622
+Thread 2 iters: 11732328487
+Thread 3 iters: 11905770130
+Thread 4 iters: 11782373737
+Thread 5 iters: 11754152760
+Thread 6 iters: 11837096251
+Thread 7 iters: 11772096576
+
+Total iters: 94211127500
+One iter every ns: 1.108224
+Timer accelerated bogosort_nonzero finished: 104.407028 seconds
+
+
+
+
+Running accelerated bogosort_nonzero, 1 trials, minimum count 10, maximum count 11, thread count 4
+Taskset is enabled: no
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+10,1,47.333514,1.423081,47333.513608,4
+Thread 0 iters: 8303050408
+Thread 1 iters: 8331519953
+Thread 2 iters: 8310883841
+Thread 3 iters: 8315835683
+
+Total iters: 33261289885
+One iter every ns: 1.423082
+Timer accelerated bogosort_nonzero finished: 47.333548 seconds
+
+
+
+
+Running accelerated bogosort_nonzero, 1 trials, minimum count 10, maximum count 11, thread count 4
+Taskset is enabled: yes
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+10,1,32.080455,1.428051,32080.454640,4
+Thread 0 iters: 5629265287
+Thread 1 iters: 5605347692
+Thread 2 iters: 5626836154
+Thread 3 iters: 5603052020
+
+Total iters: 22464501153
+One iter every ns: 1.428053
+Timer accelerated bogosort_nonzero finished: 32.080508 seconds
+
+
+
+
+Running accelerated bogosort_nonzero, 1 trials, minimum count 10, maximum count 11, thread count 8
+Taskset is enabled: no
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+10,1,33.803417,1.105758,33803.417416,8
+Thread 0 iters: 3802684179
+Thread 1 iters: 3838126496
+Thread 2 iters: 3839758699
+Thread 3 iters: 3813447077
+Thread 4 iters: 3843632852
+Thread 5 iters: 3829920250
+Thread 6 iters: 3833275568
+Thread 7 iters: 3769506782
+
+Total iters: 30570351903
+One iter every ns: 1.105759
+Timer accelerated bogosort_nonzero finished: 33.803450 seconds
+
+
+
+
+Running accelerated bogosort_nonzero, 1 trials, minimum count 10, maximum count 11, thread count 8
+Taskset is enabled: yes
+Nonzero elems,Iters,Time in s,One iter every ns,Average ms per case,Thread count
+10,1,43.791030,1.091455,43791.029502,8
+Thread 0 iters: 5032091666
+Thread 1 iters: 5020586315
+Thread 2 iters: 5001045009
+Thread 3 iters: 5034623526
+Thread 4 iters: 5025988920
+Thread 5 iters: 4978586276
+Thread 6 iters: 5025558167
+Thread 7 iters: 5003227189
+
+Total iters: 40121707068
+One iter every ns: 1.091456
+Timer accelerated bogosort_nonzero finished: 43.791064 seconds
+Timer standard battery finished: 1023.792711 seconds
