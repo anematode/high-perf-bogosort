@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <pthread.h>
+#include <unistd.h>
 #include <time.h>
 
 #include <immintrin.h>
@@ -16,7 +17,6 @@
 #endif 
 
 #ifdef __linux__
-#include <unistd.h>
 #include <sched.h>
 #endif
 
@@ -32,7 +32,7 @@
 #endif
 #endif
 
-static uint64_t SEED = 1;
+static uint64_t SEED = 0;
 
 static uint64_t r = 3;
 static int result[24]; // only 16 are used
@@ -308,12 +308,12 @@ void* avx2_bogosort(void* _thread_id) {
 		p2sh = _mm256_insert_epi32(p2sh, _mm256_extract_epi32(part1, 7), 0);
 		p2sorted = _mm256_cmpgt_epi32(p2sh, part2);
 
-		if (_mm256_testz_si256(p2sorted, p2sorted)) {
-			break;
+		if (!_mm256_testz_si256(p2sorted, p2sorted)) {
+			continue;
 		}
-	}
-	
-	// store and return
+
+		// Found!!
+		// Write result	
 		pthread_mutex_lock(&result_mutex);
 		_mm256_store_si256((__m256i*) a, part1);
 		_mm256_store_si256(1 + (__m256i*) a, part2);
@@ -324,8 +324,10 @@ void* avx2_bogosort(void* _thread_id) {
 			printf("Thread %i found!\n", thread_id);
 
 		pthread_mutex_unlock(&result_mutex);
-
+		break;
+	}
 	
+	// store and return
 #if SHOW_CYCLES
 	uint64_t cyc_end = __rdtscp(&_);
 	printf("Cyc: %llu\n", cyc_end - cyc_start);
@@ -572,10 +574,5 @@ int main() {
 	time_end("filled shuffles");
 
 set_taskset_enabled(1);	
-		run_avx2_bogosort_nonzero(20, 9, 10, 8);
-		clear_total_iters();
-
-
-	// single_threaded_iters();
-//	standard_battery();
+run_full_avx2_bogosort(8);
 }
