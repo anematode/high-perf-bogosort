@@ -32,7 +32,7 @@
 #endif
 #endif
 
-static uint64_t SEED = 0;
+static uint64_t SEED = 10;
 
 static uint64_t r = 3;
 static int result[24]; // only 16 are used
