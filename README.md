@@ -33,11 +33,55 @@ The accelerated implementation, fundamentally, can only sort exactly 16 elements
 - The registers are shuffled, but no data actually *crosses* the registers.
 - The registers are interleaved. The higher 128-bit parts of each register is interleaved,  and the lower 128-bit parts of each register is interleaved (with each other). 
 
-There is a lot of shuffling here, and conceivably the number of shuffles could be greatly reduced. I chose this system because it actually produces a fairly random shuffle, which I feel is the ethos of bogosort. If you think about it, the "amount" of randomness "introduced" is about 1024^5 = 1.1e15 > 2e13 = 16!, so, although it's not perfect, it gives you a pretty darn random result. Meanwhile, in previous implementations, I only had a lackluster shuffling algorithm (shuffle both registers with the *same* random order, then interleave them--a meager 1024 possibilities). When I ran these implementations, I observed that the number of iterations they had was less than the theoretical bogosort. Why? Because the shuffles were no longer statistically independent, and so fewer trials were necessary. Imagine spending hours writing an AVX2 implementation of your favorite algorithm, learning about cross-lane shuffling, trying to find the most performant way to check for sorting (`vpermd` ultimately works better than `vpalignr`)... only to find that your algorithm is not faithful to bogosort, that your shuffles are not statistically independent. Oh, the disgust, and the bathos of it all!
+There is a lot of shuffling here. I chose this system because it actually produces a fairly random shuffle, which I feel is the ethos of bogosort. If you think about it, the "amount" of randomness "introduced" is about 1024^5 = 1.1e15 > 2e13 = 16!, so, although it's not perfect, it gives you a pretty darn random result. Meanwhile, in previous implementations, I only had a lackluster shuffling algorithm (shuffle both registers with the *same* random order, then interleave them--a meager 1024 possibilities). When I ran these implementations, I observed that the number of iterations they had was less than the theoretical bogosort. Why? Because the shuffles were no longer statistically independent, and so fewer trials were necessary. Imagine spending hours writing an AVX2 implementation of your favorite algorithm, learning about cross-lane shuffling, trying to find the most performant way to check for sorting (`vpermd` ultimately works better than `vpalignr`)... only to find that your algorithm is not faithful to bogosort, that your shuffles are not statistically independent. Oh, the disgust, and the bathos of it all!
 
 More seriously, sorted status is checked by shifting the first register to the right and doing a vertical comparison. If it's all 0s then that half is sorted, and it jumps to a (not particularly optimized) test for whether the second half is sorted. If so, the search is over! Multithreading bogosort is easy: each thread has its own registers and RNG, but shares the same 1024 possible orders. The first thread that finds the prize sets a global flag, writes the result to a static array, and terminates in glory. The rest of the threads, seeing that the work is done, terminate equally gloriously--in bogosort, unlike in the Olympics, there are participation trophies.
 
-On my Macbook Pro, with 16 distinct elements, accelerated bogosort averages **13 cycles** per shuffle + test for single-threaded performance, as measured by `rdtsc` with turbo turned off. The measured amount agrees with llvm-mca analysis of the critical path. The bottleneck is vector loads of shuffles, which could be optimized better for sure. I'll probably get to it once I'm better with optimization. Ignoring how the shuffles are generated, the actual shuffling of the main two registers has a loop-carried dependency chain of length **10 cycles**, so that's essentially the lower bound (without sacrificing statistical quality). The code branches off of *vptest* (latency 6), which isn't great if the branch is hard to predict. But the branch only happens when the lower register is sorted, which is infrequent when there are only a few duplicates. According to my tests, under hyperthreading and full load, the new bottleneck becomes port 5 contention (1 instruction per cycle), which, again, is unlikely that I can best.
+On my Macbook Pro, with 16 distinct elements, accelerated bogosort averages **14 cycles** per shuffle + test for single-threaded performance, as measured by `rdtsc` with turbo turned off. The measured amount agrees with llvm-mca analysis of the critical path. The bottleneck is vector loads of shuffles, which could be optimized better for sure. I'll probably get to it once I'm better with optimization. Ignoring the test for sorting, the actual shuffling of the main two registers has a loop-carried dependency chain of length **10 cycles**, so that's essentially the lower bound. The code branches off of *vptest* (latency 6), which isn't great if the branch is hard to predict. But the branch only happens when the lower register is sorted, which is infrequent when there are only a few duplicates. Hyperthreaded at full load, the new bottleneck seems to be port 5 contention.
+
+#### Performance analysis
+
+The following is the most important section, compiled down:
+
+```asm
+LBB11_4:                                ## =>This Inner Loop Header: Depth=1
+	cmp	dword ptr [rip + _complete], 0
+	jne	LBB11_7
+## %bb.5:                               ##   in Loop: Header=BB11_4 Depth=1
+	inc	r13
+	vpermd	ymm1, ymm5, ymm7        ## 
+	vpermd	ymm2, ymm8, ymm2
+	lea	rbx, [rbx + 2*rbx]
+	add	rbx, 250182
+	mov	ecx, ebx
+	and	ecx, 1023
+	shl	rcx, 5
+	vmovdqa	ymm5, ymmword ptr [rax + rcx]
+	mov	rcx, rbx
+	shr	rcx, 7
+	and	ecx, 32736
+	vmovdqa	ymm8, ymmword ptr [rax + rcx]
+	vpunpckhdq	ymm3, ymm1, ymm2
+	vpermd	ymm3, ymm4, ymm3	      
+	vpunpckldq	ymm1, ymm2, ymm1        ## ymm1 = ymm2[0],ymm1[0],ymm2[1],ymm1[1],ymm2[4],ymm1[4],ymm2[5],ymm1[5]
+	vpermd	ymm1, ymm6, ymm1
+	mov	rcx, rbx
+	shr	rcx, 31
+	and	ecx, 32736
+	vmovdqa	ymm4, ymmword ptr [rax + rcx]
+	mov	rcx, rbx
+	shr	rcx, 49
+	and	ecx, -32
+	vmovdqa	ymm6, ymmword ptr [rax + rcx]
+	vpunpckhdq	ymm7, ymm3, ymm1        ## ymm7 = ymm3[2],ymm1[2],ymm3[3],ymm1[3],ymm3[6],ymm1[6],ymm3[7],ymm1[7]
+	vpunpckldq	ymm2, ymm1, ymm3        ## ymm2 = ymm1[0],ymm3[0],ymm1[1],ymm3[1],ymm1[4],ymm3[4],ymm1[5],ymm3[5]
+	vpermd	ymm1, ymm0, ymm7
+	vpcmpgtd	ymm1, ymm1, ymm7
+	vptest	ymm1, ymm1
+	jne	LBB11_4
+```
+
+`_complete` is a flag for whether the computation has been finished by another thread. `rbx` contains a random variable generated by a basic linear congruential generator. `rax` contains a pointer to a list of 1024 shuffles. An analysis/visualization of the pipeline and critical pathis given in `results/mca_analysis.txt`. If it's not obvious, the critical path is port 5 with the *vpermd* (latency 3, throughput 1) and *vpunpck(hl)dq* (latency 1, throughput 1) instructions.
 
 #### Taskset
 
