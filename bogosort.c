@@ -207,7 +207,7 @@ inline __m256i get_shuffle_shift(int idx) {
 	return _mm256_load_si256(idx + shifts);
 }
 
-#define SHOW_CYCLES 1
+#define SHOW_CYCLES 0
 
 void* avx2_bogosort(void* _thread_id) {
 	int thread_id = _thread_id ? *(int*) _thread_id : 0;
@@ -515,8 +515,8 @@ void single_threaded_iters() {
 	printf("Timing single-threaded accelerated bogosort with %i nonzero elements\n", nonzero_elems);
 	clear_total_iters();
 
-	run_avx2_bogosort(8);
-	// avx2_bogosort(NULL);
+	avx2_bogosort(NULL);
+
 	printf("Sorted array: ");
 	print_arr(result, 16);
 
@@ -536,6 +536,8 @@ void standard_battery_non_accel() {
 
 void standard_battery() {
 	time_start();
+
+	standard_battery_non_accel();
 
 	int thread_counts[] = { 1, 2, 4, 8, 4, 8, 4, 8 };
 	int trialss[] = { 100, 100, 100, 100, 20, 20, 1, 1 };
@@ -570,6 +572,6 @@ int main() {
 	time_end("filled shuffles");
 
 
-	single_threaded_iters();
-	//standard_battery();
+	// single_threaded_iters();
+	standard_battery();
 }
