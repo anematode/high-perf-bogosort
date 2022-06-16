@@ -1,0 +1,20 @@
+Max threads (accelerated only): 8
+Compiled with taskset: no
+Timer filled shuffles finished: 0.000232 seconds
+Running full 16-element accelerated bogosort
+Taskset is enabled: no
+Unsorted array: 11 15 4 7 6 10 13 16 14 12 2 1 8 3 9 5 
+Thread 7 found!
+Sorted array: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 
+Thread 0 iters: 2676687160893
+Thread 1 iters: 2676772301454
+Thread 2 iters: 2676733991756
+Thread 3 iters: 2676907023290
+Thread 4 iters: 2676874062037
+Thread 5 iters: 2676515894928
+Thread 6 iters: 2676515946636
+Thread 7 iters: 2676907623503
+
+Total iters: 21413914004497
+One iter every ns: 0.755032
+Timer accelerated bogosort 16 elements finished: 16168.198316 seconds
