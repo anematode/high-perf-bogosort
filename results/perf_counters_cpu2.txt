@@ -1,0 +1,68 @@
+sudo perf stat -e uops_dispatched_port.port_0 -e uops_dispatched_port.port_1 -e uops_dispatched_port.port_2 -e uops_dispatched_port.port_3 -e uops_dispatched_port.port_4 -e uops_dispatched_port.port_5 -e uops_dispatched_port.port_6 -e uops_dispatched_port.port_7 -e cpu-cycles -a ./bogosort
+Max threads (accelerated only): 8
+Compiled with taskset: yes
+Timer filled shuffles finished: 0.000649 seconds
+Running full 10-element accelerated bogosort
+Taskset is enabled: yes
+Unsorted array: 0 0 4 7 6 10 0 0 0 0 2 1 8 3 9 5 
+Thread 0 found!
+Sorted array: 0 0 0 0 0 0 1 2 3 4 5 6 7 8 9 10 
+Thread 0 iters: 873997874
+Thread 1 iters: 858267773
+Thread 2 iters: 871303658
+Thread 3 iters: 871433257
+
+Total iters: 3475002562
+One iter every ns: 1.048473
+Timer accelerated bogosort 10 elements finished: 3.643452 seconds
+
+ Performance counter stats for 'system wide':
+
+    15,336,330,350      uops_dispatched_port.port_0                                     (44.30%)
+    14,885,231,956      uops_dispatched_port.port_1                                     (44.39%)
+     8,902,280,178      uops_dispatched_port.port_2                                     (44.48%)
+     8,902,621,574      uops_dispatched_port.port_3                                     (44.57%)
+       209,089,154      uops_dispatched_port.port_4                                     (44.59%)
+    34,781,112,085      uops_dispatched_port.port_5                                     (44.54%)
+    23,079,443,963      uops_dispatched_port.port_6                                     (44.45%)
+       125,179,608      uops_dispatched_port.port_7                                     (44.38%)
+    51,245,374,336      cpu-cycles                                                    (44.30%)
+
+       3.620253251 seconds time elapsed
+
+sudo perf stat -e uops_dispatched_port.port_0 -e uops_dispatched_port.port_1 -e uops_dispatched_port.port_2 -e uops_dispatched_port.port_3 -e uops_dispatched_port.port_4 -e uops_dispatched_port.port_5 -e uops_dispatched_port.port_6 -e uops_dispatched_port.port_7 -e cpu-cycles -a ./bogosort
+Max threads (accelerated only): 8
+Compiled with taskset: yes
+Timer filled shuffles finished: 0.000642 seconds
+Running full 10-element accelerated bogosort
+Taskset is enabled: yes
+Unsorted array: 0 0 4 7 6 10 0 0 0 0 2 1 8 3 9 5 
+Thread 2 found!
+Sorted array: 0 0 0 0 0 0 1 2 3 4 5 6 7 8 9 10 
+Thread 0 iters: 924016068
+Thread 1 iters: 920440047
+Thread 2 iters: 873997874
+Thread 3 iters: 923001512
+Thread 4 iters: 904537179
+Thread 5 iters: 923647534
+Thread 6 iters: 936281393
+Thread 7 iters: 930540612
+
+Total iters: 7336462219
+One iter every ns: 0.787995
+Timer accelerated bogosort 10 elements finished: 5.781099 seconds
+
+ Performance counter stats for 'system wide':
+
+    35,194,212,477      uops_dispatched_port.port_0                                     (44.33%)
+    32,852,103,467      uops_dispatched_port.port_1                                     (44.38%)
+    18,669,934,738      uops_dispatched_port.port_2                                     (44.45%)
+    18,696,874,212      uops_dispatched_port.port_3                                     (44.51%)
+       338,932,290      uops_dispatched_port.port_4                                     (44.54%)
+    73,597,527,529      uops_dispatched_port.port_5                                     (44.53%)
+    43,799,741,445      uops_dispatched_port.port_6                                     (44.48%)
+       183,141,741      uops_dispatched_port.port_7                                     (44.42%)
+   156,527,488,019      cpu-cycles                                                    (44.36%)
+
+       5.769022465 seconds time elapsed
+

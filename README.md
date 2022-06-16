@@ -115,3 +115,17 @@ CPU: i5-8250U (4 cores, base frequency: 1.6 GHz, (four-core) turbo frequency: 3.
 
 
 
+## Miscellaneous commands
+
+Perf counting:
+
+```
+sudo perf stat -e uops_dispatched_port.port_0 -e uops_dispatched_port.port_1 -e uops_dispatched_port.port_2 -e uops_dispatched_port.port_3 -e uops_dispatched_port.port_4 -e uops_dispatched_port.port_5 -e uops_dispatched_port.port_6 -e uops_dispatched_port.port_7 -e cpu-cycles -a ./bogosort
+```
+
+
+```
+sudo perf stat -a ./bogosort
+```
+
+
