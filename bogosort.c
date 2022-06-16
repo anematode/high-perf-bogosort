@@ -32,7 +32,7 @@
 #endif
 #endif
 
-static uint64_t SEED = 0;
+static uint64_t SEED = 10;
 
 static uint64_t r = 3;
 static int result[24]; // only 16 are used
@@ -483,14 +483,17 @@ void run_avx2_bogosort_nonzero(int trials, int min, int max, int thread_count)  
 }
 
 void run_full_avx2_bogosort(int num_threads) {
+	num_threads = 8;
+	int elem_count = 10;
+
 	time_start();
 	clear_total_iters();
 
-	printf("Running full 16-element accelerated bogosort\n");
+	printf("Running full %i-element accelerated bogosort\n", elem_count);
 	print_which_thread_found = 1;
 	summarize_ts_enabled();
 
-	fill_nonzero_elems(16);
+	fill_nonzero_elems(elem_count);
 	shuffle(result, 16);
 
 	printf("Unsorted array: ");
@@ -502,7 +505,10 @@ void run_full_avx2_bogosort(int num_threads) {
 	print_arr(result, 16);
 
 	summarize_total_iters();
-	time_end("accelerated bogosort 16 elements");
+
+	char o[100];
+	sprintf(o, "accelerated bogosort %i elements", elem_count);
+	time_end(o);
 }
 
 void single_threaded_iters() {
