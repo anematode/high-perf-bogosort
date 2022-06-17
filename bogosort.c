@@ -20,7 +20,7 @@
 #include <sched.h>
 #endif
 
-#define MAX_THREADS 8
+#define MAX_THREADS 24
 // Whether to attempt to force threads to certain cores to prevent switching
 #define attempt_taskset 1
 
@@ -32,10 +32,10 @@
 #endif
 #endif
 
-static uint64_t SEED = 10;
+static uint64_t SEED = 42;
 
 static uint64_t r = 3;
-static int result[24]; // only 16 are used
+static int result[24]; // only 16 are actually used
 pthread_mutex_t result_mutex;
 
 static uint64_t total_iters[MAX_THREADS];
@@ -220,7 +220,6 @@ void* avx2_bogosort(void* _thread_id) {
 #endif
 #endif
 
-	__m256i mask_highest = _mm256_setr_epi32(0, -1, -1, -1, -1, -1, -1, -1); // extract highest
 	__m256i shift_right = _mm256_setr_epi32(0, 0, 1, 2, 3, 4, 5, 6);         // shift right one 32-bit int  (gets optimized out)
 	
 	// Split into two registers
@@ -233,12 +232,7 @@ void* avx2_bogosort(void* _thread_id) {
 
 	// tmp registers (many get reused)
 	__m256i shuffled1, shuffled2, p1sh, p1sorted, p2sh, p2sorted, interleaved1, interleaved2;
-	// Some extra randomness (unused atm)
-	__m256i shuffle_shift1, shuffle_shift2;
 	
-	__m256i shuffle_shift3 = get_shuffle_shift(0);
-	__m256i shuffle_shift4 = get_shuffle_shift(1);
-
 	uint64_t iters = 0;
 
 	// Ensure different seeds are used
@@ -261,18 +255,10 @@ void* avx2_bogosort(void* _thread_id) {
 		shuffled1 = _mm256_permutevar8x32_epi32(part1, shuffle3);
 		shuffled2 = _mm256_permutevar8x32_epi32(part2, shuffle4);
 
-		// shuffle_shift1 = shuffle_shift3;
-		// shuffle_shift2 = shuffle_shift4;
-		// shuffle_shift3 = get_shuffle_shift(r % SHIFT_COUNT);
-		// shuffle_shift4 = get_shuffle_shift(r >> 61);
-
 		r = r * 3 + 250182; // pseudorandom 64-bit
 
 		shuffle3 = get_8x32_shuffle(r % SHUFFLE_COUNT);
 		shuffle4 = get_8x32_shuffle((r >> 12) % SHUFFLE_COUNT);
-
-		// shuffle3 = _mm256_srlv_epi32(shuffle3, shuffle_shift3);
-		// shuffle4 = _mm256_srlv_epi32(shuffle4, shuffle_shift4);
 
 		interleaved1 = _mm256_unpackhi_epi32(shuffled1, shuffled2);
 		interleaved2 = _mm256_unpacklo_epi32(shuffled2, shuffled1);
@@ -283,21 +269,12 @@ void* avx2_bogosort(void* _thread_id) {
 		shuffle1 = get_8x32_shuffle((r >> 36) % SHUFFLE_COUNT);
 		shuffle2 = get_8x32_shuffle((r >> 54) % SHUFFLE_COUNT);	
 
-		// shuffle1 = _mm256_srlv_epi32(shuffle1, shuffle_shift1);
-		// shuffle2 = _mm256_srlv_epi32(shuffle2, shuffle_shift2);
-
 		part1 = _mm256_unpackhi_epi32(shuffled1, shuffled2);
 		part2 = _mm256_unpacklo_epi32(shuffled2, shuffled1);	
 		
 		// check sorted
 		p1sh = _mm256_permutevar8x32_epi32(part1, shift_right);
 		p1sorted = _mm256_cmpgt_epi32(p1sh, part1);
-
-		// log_mm256(part1);
-		// log_mm256(p1sh);
-		// log_mm256(p1sorted);
-
-		// break;
 
 		if (!_mm256_testz_si256(p1sorted, p1sorted)) {
 			continue;
@@ -483,8 +460,7 @@ void run_avx2_bogosort_nonzero(int trials, int min, int max, int thread_count)  
 }
 
 void run_full_avx2_bogosort(int num_threads) {
-	num_threads = 8;
-	int elem_count = 10;
+	const int elem_count = 16;
 
 	time_start();
 	clear_total_iters();
@@ -547,13 +523,18 @@ void standard_battery() {
 
 	standard_battery_non_accel();
 
-	int thread_counts[] = { 1, 2, 4, 8, 4, 8, 4, 8 };
-	int trialss[] = { 100, 100, 100, 100, 20, 20, 1, 1 };
-	int max_cnts[] = { 8, 8, 9, 9, 10, 10, 11, 11 };
-	int min_cnts[] = { 0, 0, 0, 0, 9, 9, 10, 10 }; 
+	int thread_counts[] = { 1, 2, 4, 8, 4, 8, 4, 8, 12, 16, 24 };
+	int trialss[] = { 100, 100, 100, 100, 20, 20, 1, 1, 3, 3, 3 };
+	int max_cnts[] = { 8, 8, 9, 9, 10, 10, 11, 11, 11, 11, 11 };
+	int min_cnts[] = { 0, 0, 0, 0, 9, 9, 10, 10, 10, 10, 10 }; 
 
 	for (int i = 0; i < 8; ++i) {
 		int th_count = thread_counts[i], max_cnt = max_cnts[i], min_cnt = min_cnts[i], trials = trialss[i];
+
+		if (th_count > MAX_THREADS) {
+			// Skip
+			continue;
+		}
 
 		set_taskset_enabled(0);	
 		run_avx2_bogosort_nonzero(trials, min_cnt, max_cnt, th_count);
@@ -579,6 +560,10 @@ int main() {
 	fill_shuffles();
 	time_end("filled shuffles");
 
-set_taskset_enabled(1);	
-run_full_avx2_bogosort(8);
+#ifdef __linux__
+	set_taskset_enabled(1);
+#endif
+	standard_battery_non_accel();
+	run_full_avx2_bogosort(MAX_THREADS);
+	run_full_avx2_bogosort(MAX_THREADS);
 }

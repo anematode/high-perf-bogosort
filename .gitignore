@@ -57,3 +57,4 @@ dkms.conf
 
 bogosort
 perf_playground
+.DS_Store
