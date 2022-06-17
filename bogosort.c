@@ -13,11 +13,15 @@
 #include <x86intrin.h>
 
 #ifndef __AVX2__
-#error AVX2 not supported
+#error AVX2 not supported (boring!)
 #endif 
 
 #ifdef __linux__
 #include <sched.h>
+#endif
+
+#ifdef __AVX512F__
+#pragma message ("Computer supports AVX512")
 #endif
 
 // Change this to your desired thread count
@@ -227,17 +231,62 @@ inline __m256i get_shuffle_shift(int idx) {
 	return _mm256_load_si256(idx + shifts);
 }
 
-void* avx2_bogosort(void* _thread_id) {
-	int thread_id = _thread_id ? *(int*) _thread_id : 0;
-	int* a = result;
+#define COMMON_INIT_G  \
+	int thread_id = _thread_id ? *(int*) _thread_id : 0; \
+	int* a = result; \
+	uint64_t iters = 0; \
+	/* Ensure different seeds are used */ \
+	pthread_mutex_lock(&result_mutex); \
+	uint64_t r = SEED++; \
+	pthread_mutex_unlock(&result_mutex); 
 
-#ifdef __linux__
+
+
+#if SHOW_CYCLES
+#undef COMMON_INIT_CYCLES
+#define COMMON_INIT_CYCLES \
+	unsigned int _; \
+	uint64_t cyc_start; \
+       	cyc_start = __rdtscp(&_);
+#else
+#define COMMON_INIT_CYCLES
+#endif
+
+#ifdef __linux__ 
 #if attempt_taskset
-	if (taskset_enabled)
-		taskset_thread_self(thread_id); // one logical core per physical core
-#endif
+#undef COMMON_INIT_TASKSET
+#define COMMON_INIT_TASKSET  \
+	if (taskset_enabled) \
+		taskset_thread_self(thread_id); /* one logical core per physical core */ 
+#endif 
+#else
+#define COMMON_INIT_TASKSET ;
 #endif
 
+#define COMMON_INIT COMMON_INIT_G COMMON_INIT_TASKSET COMMON_INIT_CYCLES
+
+#if SHOW_CYCLES
+#define STORE_CYCLES_COMMON \
+	uint64_t cyc_end = __rdtscp(&_); \
+	measured_rdtsc[thread_id] += cyc_end - cyc_start;
+#else
+#define STORE_CYCLES_COMMON ;
+#endif
+
+#ifdef __AVX512F__
+void* avx512_bogosort(void* _thread_id) {
+	COMMON_INIT
+
+	__m512i arr = _mm512_load_si512((const __m512i*) a);
+}
+#else
+void* avx512_bogosort(void* _thread_id) {
+	abort();
+}
+#endif /* __AXV512F__ */
+
+void* avx2_bogosort(void* _thread_id) {
+	COMMON_INIT
 	__m256i shift_right = _mm256_setr_epi32(0, 0, 1, 2, 3, 4, 5, 6);         // shift right one 32-bit int  (gets optimized out)
 	
 	// Split into two registers
@@ -251,20 +300,6 @@ void* avx2_bogosort(void* _thread_id) {
 	// tmp registers (many get reused)
 	__m256i shuffled1, shuffled2, p1sh, p1sorted, p2sh, p2sorted, interleaved1, interleaved2;
 	
-	uint64_t iters = 0;
-
-	// Ensure different seeds are used
-	
-	pthread_mutex_lock(&result_mutex);
-	uint64_t r = SEED++;
-	pthread_mutex_unlock(&result_mutex);
-
-#if SHOW_CYCLES
-	unsigned int _;
-	uint64_t cyc_start;
-       	cyc_start = __rdtscp(&_);
-#endif
-
 	while (!complete) {
 		++iters;
 
@@ -293,7 +328,8 @@ void* avx2_bogosort(void* _thread_id) {
 		p1sh = _mm256_permutevar8x32_epi32(part1, shift_right);
 		p1sorted = _mm256_cmpgt_epi32(p1sh, part1);
 
-		// Doing this followed by a 32-bit test saves one uop on port 5 compared to vptest
+		// Doing this followed by a 32-bit test saves one uop on port 5 compared to vptest. Inexplicably clang emits
+		// vmovmskps r32, ymm, but that is nearly the same in terms of performance as vpmovmskb
 		uint32_t p1msk = _mm256_movemask_epi8(p1sorted);
 
 		if (p1msk) {
@@ -327,10 +363,7 @@ void* avx2_bogosort(void* _thread_id) {
 	}
 	
 	// store and return
-#if SHOW_CYCLES
-	uint64_t cyc_end = __rdtscp(&_);
-	measured_rdtsc[thread_id] += cyc_end - cyc_start;
-#endif
+	STORE_CYCLES_COMMON
 
 	// Force storage (for counting and such)
 	_mm256_store_si256(2 + (__m256i*) a, p2sorted);
@@ -487,7 +520,7 @@ void run_full_avx2_bogosort(int num_threads) {
 	time_start();
 	clear_total_iters();
 
-	printf("Running full %i-element accelerated bogosort\n", elem_count);
+	printf("Running full %i-element AVX2 bogosort\n", elem_count);
 	print_which_thread_found = 1;
 	summarize_ts_enabled();
 
@@ -505,7 +538,7 @@ void run_full_avx2_bogosort(int num_threads) {
 	summarize_total_iters();
 
 	char o[100];
-	sprintf(o, "accelerated bogosort %i elements", elem_count);
+	sprintf(o, "AVX2 bogosort %i elements", elem_count);
 	time_end(o);
 }
 

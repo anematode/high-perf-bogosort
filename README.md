@@ -134,17 +134,22 @@ If you do decide to run this, make sure your computer doesn't kill itself!
 
 ### CPU 1
 Macbook Pro
-CPU: Core i7-8559U (base clock: 2.7GHz; max turbo: 4.5GHz)
+CPU: Core i7-8559U (4 cores, base clock: 2.7GHz; max turbo: 4.5GHz; Coffee Lake)
 [WikiChip entry](https://en.wikichip.org/wiki/intel/core_i7/i7-8559u)
 
 For four- and eight-threaded test cases, the CPU quickly throttles to 77–80% of its turbo frequency due to thermal issues. For the single- and two-threaded cases, it seems to stay at 100%. These are the figures I use for estimations.
 
 ### CPU 2
 Linux laptop
-CPU: i5-8250U (4 cores, base frequency: 1.6 GHz; max turbo: 3.4 GHz)
+CPU: i5-8250U (4 cores, base frequency: 1.6 GHz; max turbo: 3.4 GHz; Kaby Lake)
 [WikiChip entry](https://en.wikichip.org/wiki/intel/core_i5/i5-8250u)
 
 For four- and eight-threaded test cases, the CPU quickly throttles to 2400 GHz or so (70% of the turbo frequency). It does not seem to throttle for single- and two-threaded cases. Thankfully, `perf stat` gives thorough details on 
+
+### CPU 3
+2020 Mac Pro
+CPU: Xeon W-3235 (12 cores, base clock: 3.4 GHz; max turbo: 4.4 GHz; Cascade Lake)
+[WikiChip entry](https://en.wikichip.org/wiki/intel/xeon_w/w-3235)
 
 ## Miscellaneous commands
 

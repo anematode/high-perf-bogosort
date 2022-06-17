@@ -1,12 +1,13 @@
-Iterations:        400
-Instructions:      13200
-Total Cycles:      5212
-Total uOps:        14000
+Iterations:        800
+Instructions:      28000
+Total Cycles:      10416
+Total uOps:        28800
 
 Dispatch Width:    4
-uOps Per Cycle:    2.69
-IPC:               2.53
-Block RThroughput: 10.0
+uOps Per Cycle:    2.76
+IPC:               2.69
+Block RThroughput: 9.0
+
 
 Instruction Info:
 [1]: #uOps
@@ -17,39 +18,42 @@ Instruction Info:
 [6]: HasSideEffects (U)
 
 [1]    [2]    [3]    [4]    [5]    [6]    Instructions:
- 2      6     0.50    *                   cmp   dword ptr [rip + _complete], 0
- 1      1     0.50                        jne   LBB11_7
- 1      1     0.25                        inc   r13
- 1      3     1.00                        vpermd        ymm1, ymm5, ymm7
- 1      3     1.00                        vpermd        ymm2, ymm8, ymm2
- 1      1     0.50                        lea   rbx, [rbx + 2*rbx]
- 1      1     0.25                        add   rbx, 250182
- 1      1     0.25                        mov   ecx, ebx
- 1      1     0.25                        and   ecx, 1023
- 1      1     0.50                        shl   rcx, 5
- 1      7     0.50    *                   vmovdqa       ymm5, ymmword ptr [rax + rcx]
- 1      1     0.25                        mov   rcx, rbx
- 1      1     0.50                        shr   rcx, 7
- 1      1     0.25                        and   ecx, 32736
- 1      7     0.50    *                   vmovdqa       ymm8, ymmword ptr [rax + rcx]
- 1      1     1.00                        vpunpckhdq    ymm3, ymm1, ymm2
- 1      3     1.00                        vpermd        ymm3, ymm4, ymm3
- 1      1     1.00                        vpunpckldq    ymm1, ymm2, ymm1
- 1      3     1.00                        vpermd        ymm1, ymm6, ymm1
- 1      1     0.25                        mov   rcx, rbx
- 1      1     0.50                        shr   rcx, 31
- 1      1     0.25                        and   ecx, 32736
- 1      7     0.50    *                   vmovdqa       ymm4, ymmword ptr [rax + rcx]
- 1      1     0.25                        mov   rcx, rbx
- 1      1     0.50                        shr   rcx, 49
- 1      1     0.25                        and   ecx, -32
- 1      7     0.50    *                   vmovdqa       ymm6, ymmword ptr [rax + rcx]
- 1      1     1.00                        vpunpckhdq    ymm7, ymm3, ymm1
- 1      1     1.00                        vpunpckldq    ymm2, ymm1, ymm3
- 1      3     1.00                        vpermd        ymm1, ymm0, ymm7
- 1      1     0.50                        vpcmpgtd      ymm1, ymm1, ymm7
- 2      3     1.00                        vptest        ymm1, ymm1
- 1      1     0.50                        jne   LBB11_4
+ 1      1     0.50                        lea	rcx, [r12 + 1]
+ 2      6     0.50    *                   cmp	dword ptr [rip + _complete], 0
+ 1      1     0.50                        jne	LBB11_12
+ 1      1     0.25                        mov	r12, rcx
+ 1      3     1.00                        vpermd	ymm1, ymm8, ymm3
+ 1      3     1.00                        vpermd	ymm2, ymm6, ymm2
+ 1      1     0.50                        lea	rbx, [rbx + 2*rbx]
+ 1      1     0.25                        add	rbx, 250182
+ 1      1     0.25                        mov	ecx, ebx
+ 1      1     0.25                        and	ecx, 1023
+ 1      1     0.50                        shl	rcx, 5
+ 1      7     0.50    *                   vmovdqa	ymm6, ymmword ptr [rax + rcx]
+ 1      1     0.25                        mov	rcx, rbx
+ 1      1     0.50                        shr	rcx, 7
+ 1      1     0.25                        and	ecx, 32736
+ 1      7     0.50    *                   vmovdqa	ymm8, ymmword ptr [rax + rcx]
+ 1      1     1.00                        vpunpckhdq	ymm3, ymm2, ymm1
+ 1      3     1.00                        vpermd	ymm3, ymm5, ymm3
+ 1      1     1.00                        vpunpckldq	ymm1, ymm1, ymm2
+ 1      3     1.00                        vpermd	ymm1, ymm7, ymm1
+ 1      1     0.25                        mov	rcx, rbx
+ 1      1     0.50                        shr	rcx, 31
+ 1      1     0.25                        and	ecx, 32736
+ 1      7     0.50    *                   vmovdqa	ymm5, ymmword ptr [rax + rcx]
+ 1      1     0.25                        mov	rcx, rbx
+ 1      1     0.50                        shr	rcx, 49
+ 1      1     0.25                        and	ecx, -32
+ 1      7     0.50    *                   vmovdqa	ymm7, ymmword ptr [rax + rcx]
+ 1      1     1.00                        vpunpckhdq	ymm2, ymm3, ymm1
+ 1      1     1.00                        vpunpckldq	ymm3, ymm1, ymm3
+ 1      3     1.00                        vpermd	ymm1, ymm0, ymm2
+ 1      1     0.50                        vpcmpgtd	ymm1, ymm1, ymm2
+ 1      2     1.00                        vmovmskps	ecx, ymm1
+ 1      1     0.25                        test	ecx, ecx
+ 1      1     0.50                        jne	LBB11_11
+
 
 Resources:
 [0]   - SKLDivider
@@ -63,243 +67,249 @@ Resources:
 [8]   - SKLPort6
 [9]   - SKLPort7
 
+
 Resource pressure per iteration:
 [0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    
- -      -     6.98   6.01   2.50   2.50    -     10.03  6.98    -     
+ -      -     7.00   6.01   2.50   2.50    -     11.00  7.00    -     
 
 Resource pressure by instruction:
 [0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    Instructions:
- -      -     0.01   0.02   0.50   0.50    -      -     0.97    -     cmp       dword ptr [rip + _complete], 0
- -      -     0.99    -      -      -      -      -     0.01    -     jne       LBB11_7
- -      -     0.02   0.97    -      -      -     0.01   0.01    -     inc       r13
- -      -      -      -      -      -      -     1.00    -      -     vpermd    ymm1, ymm5, ymm7
- -      -      -      -      -      -      -     1.00    -      -     vpermd    ymm2, ymm8, ymm2
- -      -      -     1.00    -      -      -      -      -      -     lea       rbx, [rbx + 2*rbx]
- -      -     0.02    -      -      -      -      -     0.98    -     add       rbx, 250182
- -      -     0.97   0.01    -      -      -      -     0.03    -     mov       ecx, ebx
- -      -     0.01   0.02    -      -      -      -     0.97    -     and       ecx, 1023
- -      -     0.01    -      -      -      -      -     0.99    -     shl       rcx, 5
- -      -      -      -     0.50   0.50    -      -      -      -     vmovdqa   ymm5, ymmword ptr [rax + rcx]
- -      -     0.01   0.97    -      -      -      -     0.02    -     mov       rcx, rbx
- -      -     0.98    -      -      -      -      -     0.02    -     shr       rcx, 7
- -      -      -     0.99    -      -      -     0.01    -      -     and       ecx, 32736
- -      -      -      -     0.50   0.50    -      -      -      -     vmovdqa   ymm8, ymmword ptr [rax + rcx]
- -      -      -      -      -      -      -     1.00    -      -     vpunpckhdq        ymm3, ymm1, ymm2
- -      -      -      -      -      -      -     1.00    -      -     vpermd    ymm3, ymm4, ymm3
- -      -      -      -      -      -      -     1.00    -      -     vpunpckldq        ymm1, ymm2, ymm1
- -      -      -      -      -      -      -     1.00    -      -     vpermd    ymm1, ymm6, ymm1
- -      -     0.01   0.02    -      -      -     0.01   0.97    -     mov       rcx, rbx
- -      -     0.97    -      -      -      -      -     0.03    -     shr       rcx, 31
- -      -     0.01   0.02    -      -      -      -     0.97    -     and       ecx, 32736
- -      -      -      -     0.50   0.50    -      -      -      -     vmovdqa   ymm4, ymmword ptr [rax + rcx]
- -      -     0.96   0.03    -      -      -     0.01   0.01    -     mov       rcx, rbx
- -      -     0.03    -      -      -      -      -     0.98    -     shr       rcx, 49
- -      -      -     0.99    -      -      -      -     0.01    -     and       ecx, -32
- -      -      -      -     0.50   0.50    -      -      -      -     vmovdqa   ymm6, ymmword ptr [rax + rcx]
- -      -      -      -      -      -      -     1.00    -      -     vpunpckhdq        ymm7, ymm3, ymm1
- -      -      -      -      -      -      -     1.00    -      -     vpunpckldq        ymm2, ymm1, ymm3
- -      -      -      -      -      -      -     1.00    -      -     vpermd    ymm1, ymm0, ymm7
- -      -     0.01   1.00    -      -      -      -      -      -     vpcmpgtd  ymm1, ymm1, ymm7
- -      -     1.00    -      -      -      -     1.00    -      -     vptest    ymm1, ymm1
- -      -     0.98    -      -      -      -      -     0.02    -     jne       LBB11_4
+ -      -      -     0.99    -      -      -     0.01    -      -     lea	rcx, [r12 + 1]
+ -      -     0.99    -     0.50   0.50    -      -     0.01    -     cmp	dword ptr [rip + _complete], 0
+ -      -     1.00    -      -      -      -      -      -      -     jne	LBB11_12
+ -      -     0.01   0.01    -      -      -      -     0.99    -     mov	r12, rcx
+ -      -      -      -      -      -      -     1.00    -      -     vpermd	ymm1, ymm8, ymm3
+ -      -      -      -      -      -      -     1.00    -      -     vpermd	ymm2, ymm6, ymm2
+ -      -      -     1.00    -      -      -      -      -      -     lea	rbx, [rbx + 2*rbx]
+ -      -     1.00    -      -      -      -      -     0.01    -     add	rbx, 250182
+ -      -      -      -      -      -      -      -     1.00    -     mov	ecx, ebx
+ -      -     0.01    -      -      -      -      -     0.99    -     and	ecx, 1023
+ -      -     0.01    -      -      -      -      -     0.99    -     shl	rcx, 5
+ -      -      -      -     0.50   0.50    -      -      -      -     vmovdqa	ymm6, ymmword ptr [rax + rcx]
+ -      -      -     0.01    -      -      -     0.98   0.01    -     mov	rcx, rbx
+ -      -     0.99    -      -      -      -      -     0.02    -     shr	rcx, 7
+ -      -      -     1.00    -      -      -      -      -      -     and	ecx, 32736
+ -      -      -      -     0.50   0.50    -      -      -      -     vmovdqa	ymm8, ymmword ptr [rax + rcx]
+ -      -      -      -      -      -      -     1.00    -      -     vpunpckhdq	ymm3, ymm2, ymm1
+ -      -      -      -      -      -      -     1.00    -      -     vpermd	ymm3, ymm5, ymm3
+ -      -      -      -      -      -      -     1.00    -      -     vpunpckldq	ymm1, ymm1, ymm2
+ -      -      -      -      -      -      -     1.00    -      -     vpermd	ymm1, ymm7, ymm1
+ -      -     0.98    -      -      -      -     0.01   0.01    -     mov	rcx, rbx
+ -      -     0.01    -      -      -      -      -     0.99    -     shr	rcx, 31
+ -      -     0.98   0.02    -      -      -      -      -      -     and	ecx, 32736
+ -      -      -      -     0.50   0.50    -      -      -      -     vmovdqa	ymm5, ymmword ptr [rax + rcx]
+ -      -      -     1.00    -      -      -      -      -      -     mov	rcx, rbx
+ -      -     0.01    -      -      -      -      -     0.99    -     shr	rcx, 49
+ -      -      -     0.01    -      -      -     0.98   0.01    -     and	ecx, -32
+ -      -      -      -     0.50   0.50    -      -      -      -     vmovdqa	ymm7, ymmword ptr [rax + rcx]
+ -      -      -      -      -      -      -     1.00    -      -     vpunpckhdq	ymm2, ymm3, ymm1
+ -      -      -      -      -      -      -     1.00    -      -     vpunpckldq	ymm3, ymm1, ymm3
+ -      -      -      -      -      -      -     1.00    -      -     vpermd	ymm1, ymm0, ymm2
+ -      -      -     1.00    -      -      -      -      -      -     vpcmpgtd	ymm1, ymm1, ymm2
+ -      -     1.00    -      -      -      -      -      -      -     vmovmskps	ecx, ymm1
+ -      -     0.01   0.99    -      -      -     0.01   0.01    -     test	ecx, ecx
+ -      -      -      -      -      -      -      -     1.00    -     jne	LBB11_11
+
 
 Timeline view:
                     0123456789          0123456789          0123456789          0123456789
 Index     0123456789          0123456789          0123456789          0123456789          
 
-[0,0]     DeeeeeeER .    .    .    .    .    .    .    .    .    .    .    .    .    .   .   cmp        dword ptr [rip + _complete], 0
-[0,1]     D======eER.    .    .    .    .    .    .    .    .    .    .    .    .    .   .   jne        LBB11_7
-[0,2]     DeE------R.    .    .    .    .    .    .    .    .    .    .    .    .    .   .   inc        r13
-[0,3]     .DeeeE---R.    .    .    .    .    .    .    .    .    .    .    .    .    .   .   vpermd     ymm1, ymm5, ymm7
-[0,4]     .D=eeeE--R.    .    .    .    .    .    .    .    .    .    .    .    .    .   .   vpermd     ymm2, ymm8, ymm2
-[0,5]     .DeE-----R.    .    .    .    .    .    .    .    .    .    .    .    .    .   .   lea        rbx, [rbx + 2*rbx]
-[0,6]     .D=eE----R.    .    .    .    .    .    .    .    .    .    .    .    .    .   .   add        rbx, 250182
-[0,7]     . D=eE---R.    .    .    .    .    .    .    .    .    .    .    .    .    .   .   mov        ecx, ebx
-[0,8]     . D==eE--R.    .    .    .    .    .    .    .    .    .    .    .    .    .   .   and        ecx, 1023
-[0,9]     . D===eE-R.    .    .    .    .    .    .    .    .    .    .    .    .    .   .   shl        rcx, 5
-[0,10]    . D====eeeeeeeER    .    .    .    .    .    .    .    .    .    .    .    .   .   vmovdqa    ymm5, ymmword ptr [rax + rcx]
-[0,11]    .  DeE---------R    .    .    .    .    .    .    .    .    .    .    .    .   .   mov        rcx, rbx
-[0,12]    .  D=eE--------R    .    .    .    .    .    .    .    .    .    .    .    .   .   shr        rcx, 7
-[0,13]    .  D==eE-------R    .    .    .    .    .    .    .    .    .    .    .    .   .   and        ecx, 32736
-[0,14]    .  D===eeeeeeeER    .    .    .    .    .    .    .    .    .    .    .    .   .   vmovdqa    ymm8, ymmword ptr [rax + rcx]
-[0,15]    .   D==eE------R    .    .    .    .    .    .    .    .    .    .    .    .   .   vpunpckhdq ymm3, ymm1, ymm2
-[0,16]    .   D===eeeE---R    .    .    .    .    .    .    .    .    .    .    .    .   .   vpermd     ymm3, ymm4, ymm3
-[0,17]    .   D====eE----R    .    .    .    .    .    .    .    .    .    .    .    .   .   vpunpckldq ymm1, ymm2, ymm1
-[0,18]    .   D=====eeeE-R    .    .    .    .    .    .    .    .    .    .    .    .   .   vpermd     ymm1, ymm6, ymm1
-[0,19]    .    DeE-------R    .    .    .    .    .    .    .    .    .    .    .    .   .   mov        rcx, rbx
-[0,20]    .    D=eE------R    .    .    .    .    .    .    .    .    .    .    .    .   .   shr        rcx, 31
-[0,21]    .    D==eE-----R    .    .    .    .    .    .    .    .    .    .    .    .   .   and        ecx, 32736
-[0,22]    .    D===eeeeeeeER  .    .    .    .    .    .    .    .    .    .    .    .   .   vmovdqa    ymm4, ymmword ptr [rax + rcx]
-[0,23]    .    .DeE--------R  .    .    .    .    .    .    .    .    .    .    .    .   .   mov        rcx, rbx
-[0,24]    .    .D=eE-------R  .    .    .    .    .    .    .    .    .    .    .    .   .   shr        rcx, 49
-[0,25]    .    .D==eE------R  .    .    .    .    .    .    .    .    .    .    .    .   .   and        ecx, -32
-[0,26]    .    .D===eeeeeeeER .    .    .    .    .    .    .    .    .    .    .    .   .   vmovdqa    ymm6, ymmword ptr [rax + rcx]
-[0,27]    .    . D=====eE---R .    .    .    .    .    .    .    .    .    .    .    .   .   vpunpckhdq ymm7, ymm3, ymm1
-[0,28]    .    . D======eE--R .    .    .    .    .    .    .    .    .    .    .    .   .   vpunpckldq ymm2, ymm1, ymm3
-[0,29]    .    . D=======eeeER.    .    .    .    .    .    .    .    .    .    .    .   .   vpermd     ymm1, ymm0, ymm7
-[0,30]    .    . D==========eER    .    .    .    .    .    .    .    .    .    .    .   .   vpcmpgtd   ymm1, ymm1, ymm7
-[0,31]    .    .  D==========eeeER .    .    .    .    .    .    .    .    .    .    .   .   vptest     ymm1, ymm1
-[0,32]    .    .  D=============eER.    .    .    .    .    .    .    .    .    .    .   .   jne        LBB11_4
-[1,0]     .    .   DeeeeeeE-------R.    .    .    .    .    .    .    .    .    .    .   .   cmp        dword ptr [rip + _complete], 0
-[1,1]     .    .   D======eE------R.    .    .    .    .    .    .    .    .    .    .   .   jne        LBB11_7
-[1,2]     .    .   DeE------------R.    .    .    .    .    .    .    .    .    .    .   .   inc        r13
-[1,3]     .    .    D=====eeeE----R.    .    .    .    .    .    .    .    .    .    .   .   vpermd     ymm1, ymm5, ymm7
-[1,4]     .    .    D======eeeE---R.    .    .    .    .    .    .    .    .    .    .   .   vpermd     ymm2, ymm8, ymm2
-[1,5]     .    .    DeE-----------R.    .    .    .    .    .    .    .    .    .    .   .   lea        rbx, [rbx + 2*rbx]
-[1,6]     .    .    D=eE----------R.    .    .    .    .    .    .    .    .    .    .   .   add        rbx, 250182
-[1,7]     .    .    .D=eE---------R.    .    .    .    .    .    .    .    .    .    .   .   mov        ecx, ebx
-[1,8]     .    .    .D==eE--------R.    .    .    .    .    .    .    .    .    .    .   .   and        ecx, 1023
-[1,9]     .    .    .D===eE-------R.    .    .    .    .    .    .    .    .    .    .   .   shl        rcx, 5
-[1,10]    .    .    .D====eeeeeeeER.    .    .    .    .    .    .    .    .    .    .   .   vmovdqa    ymm5, ymmword ptr [rax + rcx]
-[1,11]    .    .    . DeE---------R.    .    .    .    .    .    .    .    .    .    .   .   mov        rcx, rbx
-[1,12]    .    .    . D=eE--------R.    .    .    .    .    .    .    .    .    .    .   .   shr        rcx, 7
-[1,13]    .    .    . D==eE-------R.    .    .    .    .    .    .    .    .    .    .   .   and        ecx, 32736
-[1,14]    .    .    . D===eeeeeeeER.    .    .    .    .    .    .    .    .    .    .   .   vmovdqa    ymm8, ymmword ptr [rax + rcx]
-[1,15]    .    .    .  D======eE--R.    .    .    .    .    .    .    .    .    .    .   .   vpunpckhdq ymm3, ymm1, ymm2
-[1,16]    .    .    .  D=======eeeER    .    .    .    .    .    .    .    .    .    .   .   vpermd     ymm3, ymm4, ymm3
-[1,17]    .    .    .  D========eE-R    .    .    .    .    .    .    .    .    .    .   .   vpunpckldq ymm1, ymm2, ymm1
-[1,18]    .    .    .  D=========eeeER  .    .    .    .    .    .    .    .    .    .   .   vpermd     ymm1, ymm6, ymm1
-[1,19]    .    .    .   DeE----------R  .    .    .    .    .    .    .    .    .    .   .   mov        rcx, rbx
-[1,20]    .    .    .   D=eE---------R  .    .    .    .    .    .    .    .    .    .   .   shr        rcx, 31
-[1,21]    .    .    .   D==eE--------R  .    .    .    .    .    .    .    .    .    .   .   and        ecx, 32736
-[1,22]    .    .    .   D===eeeeeeeE-R  .    .    .    .    .    .    .    .    .    .   .   vmovdqa    ymm4, ymmword ptr [rax + rcx]
-[1,23]    .    .    .    DeE---------R  .    .    .    .    .    .    .    .    .    .   .   mov        rcx, rbx
-[1,24]    .    .    .    D=eE--------R  .    .    .    .    .    .    .    .    .    .   .   shr        rcx, 49
-[1,25]    .    .    .    D==eE-------R  .    .    .    .    .    .    .    .    .    .   .   and        ecx, -32
-[1,26]    .    .    .    D===eeeeeeeER  .    .    .    .    .    .    .    .    .    .   .   vmovdqa    ymm6, ymmword ptr [rax + rcx]
-[1,27]    .    .    .    .D=========eER .    .    .    .    .    .    .    .    .    .   .   vpunpckhdq ymm7, ymm3, ymm1
-[1,28]    .    .    .    .D==========eER.    .    .    .    .    .    .    .    .    .   .   vpunpckldq ymm2, ymm1, ymm3
-[1,29]    .    .    .    .D===========eeeER  .    .    .    .    .    .    .    .    .   .   vpermd     ymm1, ymm0, ymm7
-[1,30]    .    .    .    .D==============eER .    .    .    .    .    .    .    .    .   .   vpcmpgtd   ymm1, ymm1, ymm7
-[1,31]    .    .    .    . D==============eeeER   .    .    .    .    .    .    .    .   .   vptest     ymm1, ymm1
-[1,32]    .    .    .    . D=================eER  .    .    .    .    .    .    .    .   .   jne        LBB11_4
-[2,0]     .    .    .    .  DeeeeeeE-----------R  .    .    .    .    .    .    .    .   .   cmp        dword ptr [rip + _complete], 0
-[2,1]     .    .    .    .  D======eE----------R  .    .    .    .    .    .    .    .   .   jne        LBB11_7
-[2,2]     .    .    .    .  DeE----------------R  .    .    .    .    .    .    .    .   .   inc        r13
-[2,3]     .    .    .    .   D=========eeeE----R  .    .    .    .    .    .    .    .   .   vpermd     ymm1, ymm5, ymm7
-[2,4]     .    .    .    .   D==========eeeE---R  .    .    .    .    .    .    .    .   .   vpermd     ymm2, ymm8, ymm2
-[2,5]     .    .    .    .   DeE---------------R  .    .    .    .    .    .    .    .   .   lea        rbx, [rbx + 2*rbx]
-[2,6]     .    .    .    .   D=eE--------------R  .    .    .    .    .    .    .    .   .   add        rbx, 250182
-[2,7]     .    .    .    .    D=eE-------------R  .    .    .    .    .    .    .    .   .   mov        ecx, ebx
-[2,8]     .    .    .    .    D==eE------------R  .    .    .    .    .    .    .    .   .   and        ecx, 1023
-[2,9]     .    .    .    .    D===eE-----------R  .    .    .    .    .    .    .    .   .   shl        rcx, 5
-[2,10]    .    .    .    .    D====eeeeeeeE----R  .    .    .    .    .    .    .    .   .   vmovdqa    ymm5, ymmword ptr [rax + rcx]
-[2,11]    .    .    .    .    .DeE-------------R  .    .    .    .    .    .    .    .   .   mov        rcx, rbx
-[2,12]    .    .    .    .    .D=eE------------R  .    .    .    .    .    .    .    .   .   shr        rcx, 7
-[2,13]    .    .    .    .    .D==eE-----------R  .    .    .    .    .    .    .    .   .   and        ecx, 32736
-[2,14]    .    .    .    .    .D===eeeeeeeE----R  .    .    .    .    .    .    .    .   .   vmovdqa    ymm8, ymmword ptr [rax + rcx]
-[2,15]    .    .    .    .    . D==========eE--R  .    .    .    .    .    .    .    .   .   vpunpckhdq ymm3, ymm1, ymm2
-[2,16]    .    .    .    .    . D===========eeeER .    .    .    .    .    .    .    .   .   vpermd     ymm3, ymm4, ymm3
-[2,17]    .    .    .    .    . D============eE-R .    .    .    .    .    .    .    .   .   vpunpckldq ymm1, ymm2, ymm1
-[2,18]    .    .    .    .    . D=============eeeER    .    .    .    .    .    .    .   .   vpermd     ymm1, ymm6, ymm1
-[2,19]    .    .    .    .    .  DeE--------------R    .    .    .    .    .    .    .   .   mov        rcx, rbx
-[2,20]    .    .    .    .    .  D=eE-------------R    .    .    .    .    .    .    .   .   shr        rcx, 31
-[2,21]    .    .    .    .    .  D==eE------------R    .    .    .    .    .    .    .   .   and        ecx, 32736
-[2,22]    .    .    .    .    .  D===eeeeeeeE-----R    .    .    .    .    .    .    .   .   vmovdqa    ymm4, ymmword ptr [rax + rcx]
-[2,23]    .    .    .    .    .   DeE-------------R    .    .    .    .    .    .    .   .   mov        rcx, rbx
-[2,24]    .    .    .    .    .   D=eE------------R    .    .    .    .    .    .    .   .   shr        rcx, 49
-[2,25]    .    .    .    .    .   D==eE-----------R    .    .    .    .    .    .    .   .   and        ecx, -32
-[2,26]    .    .    .    .    .   D===eeeeeeeE----R    .    .    .    .    .    .    .   .   vmovdqa    ymm6, ymmword ptr [rax + rcx]
-[2,27]    .    .    .    .    .    D=============eER   .    .    .    .    .    .    .   .   vpunpckhdq ymm7, ymm3, ymm1
-[2,28]    .    .    .    .    .    D==============eER  .    .    .    .    .    .    .   .   vpunpckldq ymm2, ymm1, ymm3
-[2,29]    .    .    .    .    .    D===============eeeER    .    .    .    .    .    .   .   vpermd     ymm1, ymm0, ymm7
-[2,30]    .    .    .    .    .    D==================eER   .    .    .    .    .    .   .   vpcmpgtd   ymm1, ymm1, ymm7
-[2,31]    .    .    .    .    .    .D==================eeeER.    .    .    .    .    .   .   vptest     ymm1, ymm1
-[2,32]    .    .    .    .    .    .D=====================eER    .    .    .    .    .   .   jne        LBB11_4
-[3,0]     .    .    .    .    .    . DeeeeeeE---------------R    .    .    .    .    .   .   cmp        dword ptr [rip + _complete], 0
-[3,1]     .    .    .    .    .    . D======eE--------------R    .    .    .    .    .   .   jne        LBB11_7
-[3,2]     .    .    .    .    .    . DeE--------------------R    .    .    .    .    .   .   inc        r13
-[3,3]     .    .    .    .    .    .  D=============eeeE----R    .    .    .    .    .   .   vpermd     ymm1, ymm5, ymm7
-[3,4]     .    .    .    .    .    .  D==============eeeE---R    .    .    .    .    .   .   vpermd     ymm2, ymm8, ymm2
-[3,5]     .    .    .    .    .    .  DeE-------------------R    .    .    .    .    .   .   lea        rbx, [rbx + 2*rbx]
-[3,6]     .    .    .    .    .    .  D=eE------------------R    .    .    .    .    .   .   add        rbx, 250182
-[3,7]     .    .    .    .    .    .   D=eE-----------------R    .    .    .    .    .   .   mov        ecx, ebx
-[3,8]     .    .    .    .    .    .   D==eE----------------R    .    .    .    .    .   .   and        ecx, 1023
-[3,9]     .    .    .    .    .    .   D===eE---------------R    .    .    .    .    .   .   shl        rcx, 5
-[3,10]    .    .    .    .    .    .   D====eeeeeeeE--------R    .    .    .    .    .   .   vmovdqa    ymm5, ymmword ptr [rax + rcx]
-[3,11]    .    .    .    .    .    .    DeE-----------------R    .    .    .    .    .   .   mov        rcx, rbx
-[3,12]    .    .    .    .    .    .    D=eE----------------R    .    .    .    .    .   .   shr        rcx, 7
-[3,13]    .    .    .    .    .    .    D==eE---------------R    .    .    .    .    .   .   and        ecx, 32736
-[3,14]    .    .    .    .    .    .    D===eeeeeeeE--------R    .    .    .    .    .   .   vmovdqa    ymm8, ymmword ptr [rax + rcx]
-[3,15]    .    .    .    .    .    .    .D==============eE--R    .    .    .    .    .   .   vpunpckhdq ymm3, ymm1, ymm2
-[3,16]    .    .    .    .    .    .    .D===============eeeER   .    .    .    .    .   .   vpermd     ymm3, ymm4, ymm3
-[3,17]    .    .    .    .    .    .    .D================eE-R   .    .    .    .    .   .   vpunpckldq ymm1, ymm2, ymm1
-[3,18]    .    .    .    .    .    .    .D=================eeeER .    .    .    .    .   .   vpermd     ymm1, ymm6, ymm1
-[3,19]    .    .    .    .    .    .    . DeE------------------R .    .    .    .    .   .   mov        rcx, rbx
-[3,20]    .    .    .    .    .    .    . D=eE-----------------R .    .    .    .    .   .   shr        rcx, 31
-[3,21]    .    .    .    .    .    .    . D==eE----------------R .    .    .    .    .   .   and        ecx, 32736
-[3,22]    .    .    .    .    .    .    . D===eeeeeeeE---------R .    .    .    .    .   .   vmovdqa    ymm4, ymmword ptr [rax + rcx]
-[3,23]    .    .    .    .    .    .    .  DeE-----------------R .    .    .    .    .   .   mov        rcx, rbx
-[3,24]    .    .    .    .    .    .    .  D=eE----------------R .    .    .    .    .   .   shr        rcx, 49
-[3,25]    .    .    .    .    .    .    .  D==eE---------------R .    .    .    .    .   .   and        ecx, -32
-[3,26]    .    .    .    .    .    .    .  D===eeeeeeeE--------R .    .    .    .    .   .   vmovdqa    ymm6, ymmword ptr [rax + rcx]
-[3,27]    .    .    .    .    .    .    .   D=================eER.    .    .    .    .   .   vpunpckhdq ymm7, ymm3, ymm1
-[3,28]    .    .    .    .    .    .    .   D==================eER    .    .    .    .   .   vpunpckldq ymm2, ymm1, ymm3
-[3,29]    .    .    .    .    .    .    .   D===================eeeER .    .    .    .   .   vpermd     ymm1, ymm0, ymm7
-[3,30]    .    .    .    .    .    .    .   D======================eER.    .    .    .   .   vpcmpgtd   ymm1, ymm1, ymm7
-[3,31]    .    .    .    .    .    .    .    D======================eeeER  .    .    .   .   vptest     ymm1, ymm1
-[3,32]    .    .    .    .    .    .    .    D=========================eER .    .    .   .   jne        LBB11_4
-[4,0]     .    .    .    .    .    .    .    .DeeeeeeE-------------------R .    .    .   .   cmp        dword ptr [rip + _complete], 0
-[4,1]     .    .    .    .    .    .    .    .D======eE------------------R .    .    .   .   jne        LBB11_7
-[4,2]     .    .    .    .    .    .    .    .DeE------------------------R .    .    .   .   inc        r13
-[4,3]     .    .    .    .    .    .    .    . D=================eeeE----R .    .    .   .   vpermd     ymm1, ymm5, ymm7
-[4,4]     .    .    .    .    .    .    .    . D==================eeeE---R .    .    .   .   vpermd     ymm2, ymm8, ymm2
-[4,5]     .    .    .    .    .    .    .    . DeE-----------------------R .    .    .   .   lea        rbx, [rbx + 2*rbx]
-[4,6]     .    .    .    .    .    .    .    . D=eE----------------------R .    .    .   .   add        rbx, 250182
-[4,7]     .    .    .    .    .    .    .    .  D=eE---------------------R .    .    .   .   mov        ecx, ebx
-[4,8]     .    .    .    .    .    .    .    .  D==eE--------------------R .    .    .   .   and        ecx, 1023
-[4,9]     .    .    .    .    .    .    .    .  D===eE-------------------R .    .    .   .   shl        rcx, 5
-[4,10]    .    .    .    .    .    .    .    .  D====eeeeeeeE------------R .    .    .   .   vmovdqa    ymm5, ymmword ptr [rax + rcx]
-[4,11]    .    .    .    .    .    .    .    .   DeE---------------------R .    .    .   .   mov        rcx, rbx
-[4,12]    .    .    .    .    .    .    .    .   D=eE--------------------R .    .    .   .   shr        rcx, 7
-[4,13]    .    .    .    .    .    .    .    .   D==eE-------------------R .    .    .   .   and        ecx, 32736
-[4,14]    .    .    .    .    .    .    .    .   D===eeeeeeeE------------R .    .    .   .   vmovdqa    ymm8, ymmword ptr [rax + rcx]
-[4,15]    .    .    .    .    .    .    .    .    D==================eE--R .    .    .   .   vpunpckhdq ymm3, ymm1, ymm2
-[4,16]    .    .    .    .    .    .    .    .    D===================eeeER.    .    .   .   vpermd     ymm3, ymm4, ymm3
-[4,17]    .    .    .    .    .    .    .    .    D====================eE-R.    .    .   .   vpunpckldq ymm1, ymm2, ymm1
-[4,18]    .    .    .    .    .    .    .    .    D=====================eeeER   .    .   .   vpermd     ymm1, ymm6, ymm1
-[4,19]    .    .    .    .    .    .    .    .    .DeE----------------------R   .    .   .   mov        rcx, rbx
-[4,20]    .    .    .    .    .    .    .    .    .D=eE---------------------R   .    .   .   shr        rcx, 31
-[4,21]    .    .    .    .    .    .    .    .    .D==eE--------------------R   .    .   .   and        ecx, 32736
-[4,22]    .    .    .    .    .    .    .    .    .D===eeeeeeeE-------------R   .    .   .   vmovdqa    ymm4, ymmword ptr [rax + rcx]
-[4,23]    .    .    .    .    .    .    .    .    . DeE---------------------R   .    .   .   mov        rcx, rbx
-[4,24]    .    .    .    .    .    .    .    .    . D=eE--------------------R   .    .   .   shr        rcx, 49
-[4,25]    .    .    .    .    .    .    .    .    . D==eE-------------------R   .    .   .   and        ecx, -32
-[4,26]    .    .    .    .    .    .    .    .    . D===eeeeeeeE------------R   .    .   .   vmovdqa    ymm6, ymmword ptr [rax + rcx]
-[4,27]    .    .    .    .    .    .    .    .    .  D=====================eER  .    .   .   vpunpckhdq ymm7, ymm3, ymm1
-[4,28]    .    .    .    .    .    .    .    .    .  D======================eER .    .   .   vpunpckldq ymm2, ymm1, ymm3
-[4,29]    .    .    .    .    .    .    .    .    .  D=======================eeeER   .   .   vpermd     ymm1, ymm0, ymm7
-[4,30]    .    .    .    .    .    .    .    .    .  D==========================eER  .   .   vpcmpgtd   ymm1, ymm1, ymm7
-[4,31]    .    .    .    .    .    .    .    .    .   D==========================eeeER   .   vptest     ymm1, ymm1
-[4,32]    .    .    .    .    .    .    .    .    .   D=============================eER  .   jne        LBB11_4
-[5,0]     .    .    .    .    .    .    .    .    .    DeeeeeeE-----------------------R  .   cmp        dword ptr [rip + _complete], 0
-[5,1]     .    .    .    .    .    .    .    .    .    D======eE----------------------R  .   jne        LBB11_7
-[5,2]     .    .    .    .    .    .    .    .    .    DeE----------------------------R  .   inc        r13
-[5,3]     .    .    .    .    .    .    .    .    .    .D=====================eeeE----R  .   vpermd     ymm1, ymm5, ymm7
-[5,4]     .    .    .    .    .    .    .    .    .    .D======================eeeE---R  .   vpermd     ymm2, ymm8, ymm2
-[5,5]     .    .    .    .    .    .    .    .    .    .DeE---------------------------R  .   lea        rbx, [rbx + 2*rbx]
-[5,6]     .    .    .    .    .    .    .    .    .    .D=eE--------------------------R  .   add        rbx, 250182
-[5,7]     .    .    .    .    .    .    .    .    .    . D=eE-------------------------R  .   mov        ecx, ebx
-[5,8]     .    .    .    .    .    .    .    .    .    . D==eE------------------------R  .   and        ecx, 1023
-[5,9]     .    .    .    .    .    .    .    .    .    . D===eE-----------------------R  .   shl        rcx, 5
-[5,10]    .    .    .    .    .    .    .    .    .    . D====eeeeeeeE----------------R  .   vmovdqa    ymm5, ymmword ptr [rax + rcx]
-[5,11]    .    .    .    .    .    .    .    .    .    .  DeE-------------------------R  .   mov        rcx, rbx
-[5,12]    .    .    .    .    .    .    .    .    .    .  D=eE------------------------R  .   shr        rcx, 7
-[5,13]    .    .    .    .    .    .    .    .    .    .  D==eE-----------------------R  .   and        ecx, 32736
-[5,14]    .    .    .    .    .    .    .    .    .    .  D===eeeeeeeE----------------R  .   vmovdqa    ymm8, ymmword ptr [rax + rcx]
-[5,15]    .    .    .    .    .    .    .    .    .    .   D======================eE--R  .   vpunpckhdq ymm3, ymm1, ymm2
-[5,16]    .    .    .    .    .    .    .    .    .    .   D=======================eeeER .   vpermd     ymm3, ymm4, ymm3
-[5,17]    .    .    .    .    .    .    .    .    .    .   D========================eE-R .   vpunpckldq ymm1, ymm2, ymm1
-[5,18]    .    .    .    .    .    .    .    .    .    .   D=========================eeeER   vpermd     ymm1, ymm6, ymm1
-[5,19]    .    .    .    .    .    .    .    .    .    .    DeE--------------------------R   mov        rcx, rbx
-[5,20]    .    .    .    .    .    .    .    .    .    .    D=eE-------------------------R   shr        rcx, 31
-[5,21]    .    .    .    .    .    .    .    .    .    .    D==eE------------------------R   and        ecx, 32736
-[5,22]    .    .    .    .    .    .    .    .    .    .    D===eeeeeeeE-----------------R   vmovdqa    ymm4, ymmword ptr [rax + rcx]
-[5,23]    .    .    .    .    .    .    .    .    .    .    .DeE-------------------------R   mov        rcx, rbx
-[5,24]    .    .    .    .    .    .    .    .    .    .    .D=eE------------------------R   shr        rcx, 49
-[5,25]    .    .    .    .    .    .    .    .    .    .    .D==eE-----------------------R   and        ecx, -32
-[5,26]    .    .    .    .    .    .    .    .    .    .    .D===eeeeeeeE----------------R   vmovdqa    ymm6, ymmword ptr [rax + rcx]
-Truncated display due to cycle limit
+[0,0]     DeER .    .    .    .    .    .    .    .    .    .    .    .    .    .    .   .   lea	rcx, [r12 + 1]
+[0,1]     DeeeeeeER .    .    .    .    .    .    .    .    .    .    .    .    .    .   .   cmp	dword ptr [rip + _complete], 0
+[0,2]     D======eER.    .    .    .    .    .    .    .    .    .    .    .    .    .   .   jne	LBB11_12
+[0,3]     .DeE-----R.    .    .    .    .    .    .    .    .    .    .    .    .    .   .   mov	r12, rcx
+[0,4]     .DeeeE---R.    .    .    .    .    .    .    .    .    .    .    .    .    .   .   vpermd	ymm1, ymm8, ymm3
+[0,5]     .D=eeeE--R.    .    .    .    .    .    .    .    .    .    .    .    .    .   .   vpermd	ymm2, ymm6, ymm2
+[0,6]     .D=eE----R.    .    .    .    .    .    .    .    .    .    .    .    .    .   .   lea	rbx, [rbx + 2*rbx]
+[0,7]     . D=eE---R.    .    .    .    .    .    .    .    .    .    .    .    .    .   .   add	rbx, 250182
+[0,8]     . D==eE--R.    .    .    .    .    .    .    .    .    .    .    .    .    .   .   mov	ecx, ebx
+[0,9]     . D===eE-R.    .    .    .    .    .    .    .    .    .    .    .    .    .   .   and	ecx, 1023
+[0,10]    . D====eER.    .    .    .    .    .    .    .    .    .    .    .    .    .   .   shl	rcx, 5
+[0,11]    .  D====eeeeeeeER   .    .    .    .    .    .    .    .    .    .    .    .   .   vmovdqa	ymm6, ymmword ptr [rax + rcx]
+[0,12]    .  D=eE---------R   .    .    .    .    .    .    .    .    .    .    .    .   .   mov	rcx, rbx
+[0,13]    .  D==eE--------R   .    .    .    .    .    .    .    .    .    .    .    .   .   shr	rcx, 7
+[0,14]    .  D===eE-------R   .    .    .    .    .    .    .    .    .    .    .    .   .   and	ecx, 32736
+[0,15]    .   D===eeeeeeeER   .    .    .    .    .    .    .    .    .    .    .    .   .   vmovdqa	ymm8, ymmword ptr [rax + rcx]
+[0,16]    .   D=eE--------R   .    .    .    .    .    .    .    .    .    .    .    .   .   vpunpckhdq	ymm3, ymm2, ymm1
+[0,17]    .   D===eeeE----R   .    .    .    .    .    .    .    .    .    .    .    .   .   vpermd	ymm3, ymm5, ymm3
+[0,18]    .   D====eE-----R   .    .    .    .    .    .    .    .    .    .    .    .   .   vpunpckldq	ymm1, ymm1, ymm2
+[0,19]    .    D====eeeE--R   .    .    .    .    .    .    .    .    .    .    .    .   .   vpermd	ymm1, ymm7, ymm1
+[0,20]    .    DeE--------R   .    .    .    .    .    .    .    .    .    .    .    .   .   mov	rcx, rbx
+[0,21]    .    D==eE------R   .    .    .    .    .    .    .    .    .    .    .    .   .   shr	rcx, 31
+[0,22]    .    D===eE-----R   .    .    .    .    .    .    .    .    .    .    .    .   .   and	ecx, 32736
+[0,23]    .    .D===eeeeeeeER .    .    .    .    .    .    .    .    .    .    .    .   .   vmovdqa	ymm5, ymmword ptr [rax + rcx]
+[0,24]    .    .DeE---------R .    .    .    .    .    .    .    .    .    .    .    .   .   mov	rcx, rbx
+[0,25]    .    .D=eE--------R .    .    .    .    .    .    .    .    .    .    .    .   .   shr	rcx, 49
+[0,26]    .    .D==eE-------R .    .    .    .    .    .    .    .    .    .    .    .   .   and	ecx, -32
+[0,27]    .    . D==eeeeeeeER .    .    .    .    .    .    .    .    .    .    .    .   .   vmovdqa	ymm7, ymmword ptr [rax + rcx]
+[0,28]    .    . D=====eE---R .    .    .    .    .    .    .    .    .    .    .    .   .   vpunpckhdq	ymm2, ymm3, ymm1
+[0,29]    .    . D======eE--R .    .    .    .    .    .    .    .    .    .    .    .   .   vpunpckldq	ymm3, ymm1, ymm3
+[0,30]    .    . D=======eeeER.    .    .    .    .    .    .    .    .    .    .    .   .   vpermd	ymm1, ymm0, ymm2
+[0,31]    .    .  D=========eER    .    .    .    .    .    .    .    .    .    .    .   .   vpcmpgtd	ymm1, ymm1, ymm2
+[0,32]    .    .  D==========eeER  .    .    .    .    .    .    .    .    .    .    .   .   vmovmskps	ecx, ymm1
+[0,33]    .    .  D============eER .    .    .    .    .    .    .    .    .    .    .   .   test	ecx, ecx
+[0,34]    .    .  D=============eER.    .    .    .    .    .    .    .    .    .    .   .   jne	LBB11_11
+[1,0]     .    .   DeE------------R.    .    .    .    .    .    .    .    .    .    .   .   lea	rcx, [r12 + 1]
+[1,1]     .    .   D=eeeeeeE------R.    .    .    .    .    .    .    .    .    .    .   .   cmp	dword ptr [rip + _complete], 0
+[1,2]     .    .   D=======eE-----R.    .    .    .    .    .    .    .    .    .    .   .   jne	LBB11_12
+[1,3]     .    .    DeE-----------R.    .    .    .    .    .    .    .    .    .    .   .   mov	r12, rcx
+[1,4]     .    .    D=====eeeE----R.    .    .    .    .    .    .    .    .    .    .   .   vpermd	ymm1, ymm8, ymm3
+[1,5]     .    .    D======eeeE---R.    .    .    .    .    .    .    .    .    .    .   .   vpermd	ymm2, ymm6, ymm2
+[1,6]     .    .    DeE-----------R.    .    .    .    .    .    .    .    .    .    .   .   lea	rbx, [rbx + 2*rbx]
+[1,7]     .    .    .DeE----------R.    .    .    .    .    .    .    .    .    .    .   .   add	rbx, 250182
+[1,8]     .    .    .D=eE---------R.    .    .    .    .    .    .    .    .    .    .   .   mov	ecx, ebx
+[1,9]     .    .    .D==eE--------R.    .    .    .    .    .    .    .    .    .    .   .   and	ecx, 1023
+[1,10]    .    .    .D===eE-------R.    .    .    .    .    .    .    .    .    .    .   .   shl	rcx, 5
+[1,11]    .    .    . D===eeeeeeeER.    .    .    .    .    .    .    .    .    .    .   .   vmovdqa	ymm6, ymmword ptr [rax + rcx]
+[1,12]    .    .    . DeE---------R.    .    .    .    .    .    .    .    .    .    .   .   mov	rcx, rbx
+[1,13]    .    .    . D=eE--------R.    .    .    .    .    .    .    .    .    .    .   .   shr	rcx, 7
+[1,14]    .    .    . D==eE-------R.    .    .    .    .    .    .    .    .    .    .   .   and	ecx, 32736
+[1,15]    .    .    .  D==eeeeeeeER.    .    .    .    .    .    .    .    .    .    .   .   vmovdqa	ymm8, ymmword ptr [rax + rcx]
+[1,16]    .    .    .  D======eE--R.    .    .    .    .    .    .    .    .    .    .   .   vpunpckhdq	ymm3, ymm2, ymm1
+[1,17]    .    .    .  D=======eeeER    .    .    .    .    .    .    .    .    .    .   .   vpermd	ymm3, ymm5, ymm3
+[1,18]    .    .    .  D========eE-R    .    .    .    .    .    .    .    .    .    .   .   vpunpckldq	ymm1, ymm1, ymm2
+[1,19]    .    .    .   D========eeeER  .    .    .    .    .    .    .    .    .    .   .   vpermd	ymm1, ymm7, ymm1
+[1,20]    .    .    .   DeE----------R  .    .    .    .    .    .    .    .    .    .   .   mov	rcx, rbx
+[1,21]    .    .    .   D=eE---------R  .    .    .    .    .    .    .    .    .    .   .   shr	rcx, 31
+[1,22]    .    .    .   D==eE--------R  .    .    .    .    .    .    .    .    .    .   .   and	ecx, 32736
+[1,23]    .    .    .    D==eeeeeeeE-R  .    .    .    .    .    .    .    .    .    .   .   vmovdqa	ymm5, ymmword ptr [rax + rcx]
+[1,24]    .    .    .    DeE---------R  .    .    .    .    .    .    .    .    .    .   .   mov	rcx, rbx
+[1,25]    .    .    .    D=eE--------R  .    .    .    .    .    .    .    .    .    .   .   shr	rcx, 49
+[1,26]    .    .    .    D==eE-------R  .    .    .    .    .    .    .    .    .    .   .   and	ecx, -32
+[1,27]    .    .    .    .D==eeeeeeeER  .    .    .    .    .    .    .    .    .    .   .   vmovdqa	ymm7, ymmword ptr [rax + rcx]
+[1,28]    .    .    .    .D=========eER .    .    .    .    .    .    .    .    .    .   .   vpunpckhdq	ymm2, ymm3, ymm1
+[1,29]    .    .    .    .D==========eER.    .    .    .    .    .    .    .    .    .   .   vpunpckldq	ymm3, ymm1, ymm3
+[1,30]    .    .    .    .D===========eeeER  .    .    .    .    .    .    .    .    .   .   vpermd	ymm1, ymm0, ymm2
+[1,31]    .    .    .    . D=============eER .    .    .    .    .    .    .    .    .   .   vpcmpgtd	ymm1, ymm1, ymm2
+[1,32]    .    .    .    . D==============eeER    .    .    .    .    .    .    .    .   .   vmovmskps	ecx, ymm1
+[1,33]    .    .    .    . D================eER   .    .    .    .    .    .    .    .   .   test	ecx, ecx
+[1,34]    .    .    .    . D=================eER  .    .    .    .    .    .    .    .   .   jne	LBB11_11
+[2,0]     .    .    .    .  DeE----------------R  .    .    .    .    .    .    .    .   .   lea	rcx, [r12 + 1]
+[2,1]     .    .    .    .  DeeeeeeE-----------R  .    .    .    .    .    .    .    .   .   cmp	dword ptr [rip + _complete], 0
+[2,2]     .    .    .    .  D======eE----------R  .    .    .    .    .    .    .    .   .   jne	LBB11_12
+[2,3]     .    .    .    .   DeE---------------R  .    .    .    .    .    .    .    .   .   mov	r12, rcx
+[2,4]     .    .    .    .   D=========eeeE----R  .    .    .    .    .    .    .    .   .   vpermd	ymm1, ymm8, ymm3
+[2,5]     .    .    .    .   D==========eeeE---R  .    .    .    .    .    .    .    .   .   vpermd	ymm2, ymm6, ymm2
+[2,6]     .    .    .    .   D=eE--------------R  .    .    .    .    .    .    .    .   .   lea	rbx, [rbx + 2*rbx]
+[2,7]     .    .    .    .    D=eE-------------R  .    .    .    .    .    .    .    .   .   add	rbx, 250182
+[2,8]     .    .    .    .    D==eE------------R  .    .    .    .    .    .    .    .   .   mov	ecx, ebx
+[2,9]     .    .    .    .    D===eE-----------R  .    .    .    .    .    .    .    .   .   and	ecx, 1023
+[2,10]    .    .    .    .    D====eE----------R  .    .    .    .    .    .    .    .   .   shl	rcx, 5
+[2,11]    .    .    .    .    .D====eeeeeeeE---R  .    .    .    .    .    .    .    .   .   vmovdqa	ymm6, ymmword ptr [rax + rcx]
+[2,12]    .    .    .    .    .D=eE------------R  .    .    .    .    .    .    .    .   .   mov	rcx, rbx
+[2,13]    .    .    .    .    .D==eE-----------R  .    .    .    .    .    .    .    .   .   shr	rcx, 7
+[2,14]    .    .    .    .    .D===eE----------R  .    .    .    .    .    .    .    .   .   and	ecx, 32736
+[2,15]    .    .    .    .    . D===eeeeeeeE---R  .    .    .    .    .    .    .    .   .   vmovdqa	ymm8, ymmword ptr [rax + rcx]
+[2,16]    .    .    .    .    . D==========eE--R  .    .    .    .    .    .    .    .   .   vpunpckhdq	ymm3, ymm2, ymm1
+[2,17]    .    .    .    .    . D============eeeER.    .    .    .    .    .    .    .   .   vpermd	ymm3, ymm5, ymm3
+[2,18]    .    .    .    .    . D=============eE-R.    .    .    .    .    .    .    .   .   vpunpckldq	ymm1, ymm1, ymm2
+[2,19]    .    .    .    .    .  D=============eeeER   .    .    .    .    .    .    .   .   vpermd	ymm1, ymm7, ymm1
+[2,20]    .    .    .    .    .  DeE---------------R   .    .    .    .    .    .    .   .   mov	rcx, rbx
+[2,21]    .    .    .    .    .  D==eE-------------R   .    .    .    .    .    .    .   .   shr	rcx, 31
+[2,22]    .    .    .    .    .  D===eE------------R   .    .    .    .    .    .    .   .   and	ecx, 32736
+[2,23]    .    .    .    .    .   D===eeeeeeeE-----R   .    .    .    .    .    .    .   .   vmovdqa	ymm5, ymmword ptr [rax + rcx]
+[2,24]    .    .    .    .    .   DeE--------------R   .    .    .    .    .    .    .   .   mov	rcx, rbx
+[2,25]    .    .    .    .    .   D=eE-------------R   .    .    .    .    .    .    .   .   shr	rcx, 49
+[2,26]    .    .    .    .    .   D==eE------------R   .    .    .    .    .    .    .   .   and	ecx, -32
+[2,27]    .    .    .    .    .    D==eeeeeeeE-----R   .    .    .    .    .    .    .   .   vmovdqa	ymm7, ymmword ptr [rax + rcx]
+[2,28]    .    .    .    .    .    D==============eER  .    .    .    .    .    .    .   .   vpunpckhdq	ymm2, ymm3, ymm1
+[2,29]    .    .    .    .    .    D===============eER .    .    .    .    .    .    .   .   vpunpckldq	ymm3, ymm1, ymm3
+[2,30]    .    .    .    .    .    D================eeeER   .    .    .    .    .    .   .   vpermd	ymm1, ymm0, ymm2
+[2,31]    .    .    .    .    .    .D==================eER  .    .    .    .    .    .   .   vpcmpgtd	ymm1, ymm1, ymm2
+[2,32]    .    .    .    .    .    .D===================eeER.    .    .    .    .    .   .   vmovmskps	ecx, ymm1
+[2,33]    .    .    .    .    .    .D=====================eER    .    .    .    .    .   .   test	ecx, ecx
+[2,34]    .    .    .    .    .    .D======================eER   .    .    .    .    .   .   jne	LBB11_11
+[3,0]     .    .    .    .    .    . DeE---------------------R   .    .    .    .    .   .   lea	rcx, [r12 + 1]
+[3,1]     .    .    .    .    .    . D=eeeeeeE---------------R   .    .    .    .    .   .   cmp	dword ptr [rip + _complete], 0
+[3,2]     .    .    .    .    .    . D=======eE--------------R   .    .    .    .    .   .   jne	LBB11_12
+[3,3]     .    .    .    .    .    .  DeE--------------------R   .    .    .    .    .   .   mov	r12, rcx
+[3,4]     .    .    .    .    .    .  D==============eeeE----R   .    .    .    .    .   .   vpermd	ymm1, ymm8, ymm3
+[3,5]     .    .    .    .    .    .  D===============eeeE---R   .    .    .    .    .   .   vpermd	ymm2, ymm6, ymm2
+[3,6]     .    .    .    .    .    .  DeE--------------------R   .    .    .    .    .   .   lea	rbx, [rbx + 2*rbx]
+[3,7]     .    .    .    .    .    .   DeE-------------------R   .    .    .    .    .   .   add	rbx, 250182
+[3,8]     .    .    .    .    .    .   D=eE------------------R   .    .    .    .    .   .   mov	ecx, ebx
+[3,9]     .    .    .    .    .    .   D==eE-----------------R   .    .    .    .    .   .   and	ecx, 1023
+[3,10]    .    .    .    .    .    .   D===eE----------------R   .    .    .    .    .   .   shl	rcx, 5
+[3,11]    .    .    .    .    .    .    D===eeeeeeeE---------R   .    .    .    .    .   .   vmovdqa	ymm6, ymmword ptr [rax + rcx]
+[3,12]    .    .    .    .    .    .    DeE------------------R   .    .    .    .    .   .   mov	rcx, rbx
+[3,13]    .    .    .    .    .    .    D=eE-----------------R   .    .    .    .    .   .   shr	rcx, 7
+[3,14]    .    .    .    .    .    .    D==eE----------------R   .    .    .    .    .   .   and	ecx, 32736
+[3,15]    .    .    .    .    .    .    .D==eeeeeeeE---------R   .    .    .    .    .   .   vmovdqa	ymm8, ymmword ptr [rax + rcx]
+[3,16]    .    .    .    .    .    .    .D===============eE--R   .    .    .    .    .   .   vpunpckhdq	ymm3, ymm2, ymm1
+[3,17]    .    .    .    .    .    .    .D================eeeER  .    .    .    .    .   .   vpermd	ymm3, ymm5, ymm3
+[3,18]    .    .    .    .    .    .    .D=================eE-R  .    .    .    .    .   .   vpunpckldq	ymm1, ymm1, ymm2
+[3,19]    .    .    .    .    .    .    . D=================eeeER.    .    .    .    .   .   vpermd	ymm1, ymm7, ymm1
+[3,20]    .    .    .    .    .    .    . DeE-------------------R.    .    .    .    .   .   mov	rcx, rbx
+[3,21]    .    .    .    .    .    .    . D=eE------------------R.    .    .    .    .   .   shr	rcx, 31
+[3,22]    .    .    .    .    .    .    . D==eE-----------------R.    .    .    .    .   .   and	ecx, 32736
+[3,23]    .    .    .    .    .    .    .  D==eeeeeeeE----------R.    .    .    .    .   .   vmovdqa	ymm5, ymmword ptr [rax + rcx]
+[3,24]    .    .    .    .    .    .    .  DeE------------------R.    .    .    .    .   .   mov	rcx, rbx
+[3,25]    .    .    .    .    .    .    .  D==eE----------------R.    .    .    .    .   .   shr	rcx, 49
+[3,26]    .    .    .    .    .    .    .  D===eE---------------R.    .    .    .    .   .   and	ecx, -32
+[3,27]    .    .    .    .    .    .    .   D===eeeeeeeE--------R.    .    .    .    .   .   vmovdqa	ymm7, ymmword ptr [rax + rcx]
+[3,28]    .    .    .    .    .    .    .   D==================eER    .    .    .    .   .   vpunpckhdq	ymm2, ymm3, ymm1
+[3,29]    .    .    .    .    .    .    .   D===================eER   .    .    .    .   .   vpunpckldq	ymm3, ymm1, ymm3
+[3,30]    .    .    .    .    .    .    .   D====================eeeER.    .    .    .   .   vpermd	ymm1, ymm0, ymm2
+[3,31]    .    .    .    .    .    .    .    D======================eER    .    .    .   .   vpcmpgtd	ymm1, ymm1, ymm2
+[3,32]    .    .    .    .    .    .    .    D=======================eeER  .    .    .   .   vmovmskps	ecx, ymm1
+[3,33]    .    .    .    .    .    .    .    D=========================eER .    .    .   .   test	ecx, ecx
+[3,34]    .    .    .    .    .    .    .    D==========================eER.    .    .   .   jne	LBB11_11
+[4,0]     .    .    .    .    .    .    .    .D=eE------------------------R.    .    .   .   lea	rcx, [r12 + 1]
+[4,1]     .    .    .    .    .    .    .    .DeeeeeeE--------------------R.    .    .   .   cmp	dword ptr [rip + _complete], 0
+[4,2]     .    .    .    .    .    .    .    .D======eE-------------------R.    .    .   .   jne	LBB11_12
+[4,3]     .    .    .    .    .    .    .    . D=eE-----------------------R.    .    .   .   mov	r12, rcx
+[4,4]     .    .    .    .    .    .    .    . D==================eeeE----R.    .    .   .   vpermd	ymm1, ymm8, ymm3
+[4,5]     .    .    .    .    .    .    .    . D===================eeeE---R.    .    .   .   vpermd	ymm2, ymm6, ymm2
+[4,6]     .    .    .    .    .    .    .    . DeE------------------------R.    .    .   .   lea	rbx, [rbx + 2*rbx]
+[4,7]     .    .    .    .    .    .    .    .  DeE-----------------------R.    .    .   .   add	rbx, 250182
+[4,8]     .    .    .    .    .    .    .    .  D=eE----------------------R.    .    .   .   mov	ecx, ebx
+[4,9]     .    .    .    .    .    .    .    .  D==eE---------------------R.    .    .   .   and	ecx, 1023
+[4,10]    .    .    .    .    .    .    .    .  D===eE--------------------R.    .    .   .   shl	rcx, 5
+[4,11]    .    .    .    .    .    .    .    .   D===eeeeeeeE-------------R.    .    .   .   vmovdqa	ymm6, ymmword ptr [rax + rcx]
+[4,12]    .    .    .    .    .    .    .    .   DeE----------------------R.    .    .   .   mov	rcx, rbx
+[4,13]    .    .    .    .    .    .    .    .   D=eE---------------------R.    .    .   .   shr	rcx, 7
+[4,14]    .    .    .    .    .    .    .    .   D==eE--------------------R.    .    .   .   and	ecx, 32736
+[4,15]    .    .    .    .    .    .    .    .    D==eeeeeeeE-------------R.    .    .   .   vmovdqa	ymm8, ymmword ptr [rax + rcx]
+[4,16]    .    .    .    .    .    .    .    .    D===================eE--R.    .    .   .   vpunpckhdq	ymm3, ymm2, ymm1
+[4,17]    .    .    .    .    .    .    .    .    D=====================eeeER   .    .   .   vpermd	ymm3, ymm5, ymm3
+[4,18]    .    .    .    .    .    .    .    .    D======================eE-R   .    .   .   vpunpckldq	ymm1, ymm1, ymm2
+[4,19]    .    .    .    .    .    .    .    .    .D======================eeeER .    .   .   vpermd	ymm1, ymm7, ymm1
+[4,20]    .    .    .    .    .    .    .    .    .DeE------------------------R .    .   .   mov	rcx, rbx
+[4,21]    .    .    .    .    .    .    .    .    .D=eE-----------------------R .    .   .   shr	rcx, 31
+[4,22]    .    .    .    .    .    .    .    .    .D==eE----------------------R .    .   .   and	ecx, 32736
+[4,23]    .    .    .    .    .    .    .    .    . D==eeeeeeeE---------------R .    .   .   vmovdqa	ymm5, ymmword ptr [rax + rcx]
+[4,24]    .    .    .    .    .    .    .    .    . DeE-----------------------R .    .   .   mov	rcx, rbx
+[4,25]    .    .    .    .    .    .    .    .    . D=eE----------------------R .    .   .   shr	rcx, 49
+[4,26]    .    .    .    .    .    .    .    .    . D==eE---------------------R .    .   .   and	ecx, -32
+[4,27]    .    .    .    .    .    .    .    .    .  D==eeeeeeeE--------------R .    .   .   vmovdqa	ymm7, ymmword ptr [rax + rcx]
+[4,28]    .    .    .    .    .    .    .    .    .  D=======================eER.    .   .   vpunpckhdq	ymm2, ymm3, ymm1
+[4,29]    .    .    .    .    .    .    .    .    .  D========================eER    .   .   vpunpckldq	ymm3, ymm1, ymm3
+[4,30]    .    .    .    .    .    .    .    .    .  D=========================eeeER .   .   vpermd	ymm1, ymm0, ymm2
+[4,31]    .    .    .    .    .    .    .    .    .   D===========================eER.   .   vpcmpgtd	ymm1, ymm1, ymm2
+[4,32]    .    .    .    .    .    .    .    .    .   D============================eeER  .   vmovmskps	ecx, ymm1
+[4,33]    .    .    .    .    .    .    .    .    .   D==============================eER .   test	ecx, ecx
+[4,34]    .    .    .    .    .    .    .    .    .   D===============================eER.   jne	LBB11_11
+[5,0]     .    .    .    .    .    .    .    .    .    DeE------------------------------R.   lea	rcx, [r12 + 1]
+[5,1]     .    .    .    .    .    .    .    .    .    DeeeeeeE-------------------------R.   cmp	dword ptr [rip + _complete], 0
+[5,2]     .    .    .    .    .    .    .    .    .    D======eE------------------------R.   jne	LBB11_12
+[5,3]     .    .    .    .    .    .    .    .    .    .DeE-----------------------------R.   mov	r12, rcx
+[5,4]     .    .    .    .    .    .    .    .    .    .D=======================eeeE----R.   vpermd	ymm1, ymm8, ymm3
+[5,5]     .    .    .    .    .    .    .    .    .    .D========================eeeE---R.   vpermd	ymm2, ymm6, ymm2
+[5,6]     .    .    .    .    .    .    .    .    .    .D=eE----------------------------R.   lea	rbx, [rbx + 2*rbx]
+[5,7]     .    .    .    .    .    .    .    .    .    . D=eE---------------------------R.   add	rbx, 250182
+[5,8]     .    .    .    .    .    .    .    .    .    . D==eE--------------------------R.   mov	ecx, ebx
+[5,9]     .    .    .    .    .    .    .    .    .    . D===eE-------------------------R.   and	ecx, 1023
+[5,10]    .    .    .    .    .    .    .    .    .    . D====eE------------------------R.   shl	rcx, 5
+[5,11]    .    .    .    .    .    .    .    .    .    .  D====eeeeeeeE-----------------R.   vmovdqa	ymm6, ymmword ptr [rax + rcx]
+[5,12]    .    .    .    .    .    .    .    .    .    .  D=eE--------------------------R.   mov	rcx, rbx
+[5,13]    .    .    .    .    .    .    .    .    .    .  D==eE-------------------------R.   shr	rcx, 7
+[5,14]    .    .    .    .    .    .    .    .    .    .  D===eE------------------------R.   and	ecx, 32736
+[5,15]    .    .    .    .    .    .    .    .    .    .   D===eeeeeeeE-----------------R.   vmovdqa	ymm8, ymmword ptr [rax + rcx]
+[5,16]    .    .    .    .    .    .    .    .    .    .   D========================eE--R.   vpunpckhdq	ymm3, ymm2, ymm1
+[5,17]    .    .    .    .    .    .    .    .    .    .   D=========================eeeER   vpermd	ymm3, ymm5, ymm3
+[5,18]    .    .    .    .    .    .    .    .    .    .   D==========================eE-R   vpunpckldq	ymm1, ymm1, ymm2
+
 
 Average Wait times (based on the timeline view):
 [0]: Executions
@@ -308,37 +318,39 @@ Average Wait times (based on the timeline view):
 [3]: Average time elapsed from WB until retire stage
 
       [0]    [1]    [2]    [3]
-0.     10    1.1    1.1    20.6      cmp        dword ptr [rip + _complete], 0
-1.     10    7.1    0.0    19.7      jne        LBB11_7
-2.     10    1.0    1.0    25.8      inc        r13
-3.     10    19.9   1.9    3.9       vpermd     ymm1, ymm5, ymm7
-4.     10    20.9   2.0    2.9       vpermd     ymm2, ymm8, ymm2
-5.     10    1.2    1.2    24.6      lea        rbx, [rbx + 2*rbx]
-6.     10    2.2    0.0    23.6      add        rbx, 250182
-7.     10    2.2    0.0    22.6      mov        ecx, ebx
-8.     10    3.2    0.0    21.6      and        ecx, 1023
-9.     10    4.2    0.0    20.6      shl        rcx, 5
-10.    10    5.2    0.0    14.2      vmovdqa    ymm5, ymmword ptr [rax + rcx]
-11.    10    1.2    0.0    23.2      mov        rcx, rbx
-12.    10    2.2    0.0    22.2      shr        rcx, 7
-13.    10    3.2    0.0    21.2      and        ecx, 32736
-14.    10    4.2    0.0    14.2      vmovdqa    ymm8, ymmword ptr [rax + rcx]
-15.    10    21.0   0.1    2.4       vpunpckhdq ymm3, ymm1, ymm2
-16.    10    22.0   0.0    0.3       vpermd     ymm3, ymm4, ymm3
-17.    10    23.0   2.1    1.3       vpunpckldq ymm1, ymm2, ymm1
-18.    10    24.0   0.0    0.1       vpermd     ymm1, ymm6, ymm1
-19.    10    1.1    1.1    24.0      mov        rcx, rbx
-20.    10    2.3    0.2    22.8      shr        rcx, 31
-21.    10    3.3    0.0    21.8      and        ecx, 32736
-22.    10    4.3    0.0    15.0      vmovdqa    ymm4, ymmword ptr [rax + rcx]
-23.    10    1.3    1.3    23.0      mov        rcx, rbx
-24.    10    2.3    0.0    22.0      shr        rcx, 49
-25.    10    3.3    0.0    21.0      and        ecx, -32
-26.    10    4.3    0.0    14.1      vmovdqa    ymm6, ymmword ptr [rax + rcx]
-27.    10    24.0   0.0    0.3       vpunpckhdq ymm7, ymm3, ymm1
-28.    10    25.0   1.0    0.2       vpunpckldq ymm2, ymm1, ymm3
-29.    10    26.0   1.0    0.0       vpermd     ymm1, ymm0, ymm7
-30.    10    29.0   0.0    0.0       vpcmpgtd   ymm1, ymm1, ymm7
-31.    10    29.0   0.0    0.0       vptest     ymm1, ymm1
-32.    10    32.0   0.0    0.0       jne        LBB11_4
-       10    10.8   0.4    13.6      <total>
+0.     10    1.2    1.2    26.6      lea	rcx, [r12 + 1]
+1.     10    1.4    1.4    21.9      cmp	dword ptr [rip + _complete], 0
+2.     10    7.4    0.0    21.0      jne	LBB11_12
+3.     10    1.2    0.0    26.2      mov	r12, rcx
+4.     10    21.5   1.0    3.9       vpermd	ymm1, ymm8, ymm3
+5.     10    22.5   2.8    2.9       vpermd	ymm2, ymm6, ymm2
+6.     10    1.4    1.4    26.0      lea	rbx, [rbx + 2*rbx]
+7.     10    1.4    0.0    25.0      add	rbx, 250182
+8.     10    2.4    0.0    24.0      mov	ecx, ebx
+9.     10    3.4    0.0    23.0      and	ecx, 1023
+10.    10    4.4    0.0    22.0      shl	rcx, 5
+11.    10    4.4    0.0    15.7      vmovdqa	ymm6, ymmword ptr [rax + rcx]
+12.    10    1.4    0.0    24.7      mov	rcx, rbx
+13.    10    2.4    0.0    23.7      shr	rcx, 7
+14.    10    3.4    0.0    22.7      and	ecx, 32736
+15.    10    3.4    0.0    15.7      vmovdqa	ymm8, ymmword ptr [rax + rcx]
+16.    10    22.5   0.0    2.6       vpunpckhdq	ymm3, ymm2, ymm1
+17.    10    24.0   0.5    0.4       vpermd	ymm3, ymm5, ymm3
+18.    10    25.0   2.5    1.4       vpunpckldq	ymm1, ymm1, ymm2
+19.    10    25.0   0.0    0.2       vpermd	ymm1, ymm7, ymm1
+20.    10    1.0    1.0    26.2      mov	rcx, rbx
+21.    10    2.4    0.4    24.8      shr	rcx, 31
+22.    10    3.4    0.0    23.8      and	ecx, 32736
+23.    10    3.4    0.0    17.0      vmovdqa	ymm5, ymmword ptr [rax + rcx]
+24.    10    1.0    1.0    25.4      mov	rcx, rbx
+25.    10    2.3    0.3    24.1      shr	rcx, 49
+26.    10    3.3    0.0    23.1      and	ecx, -32
+27.    10    3.3    0.0    16.1      vmovdqa	ymm7, ymmword ptr [rax + rcx]
+28.    10    26.0   0.0    0.3       vpunpckhdq	ymm2, ymm3, ymm1
+29.    10    27.0   1.0    0.2       vpunpckldq	ymm3, ymm1, ymm3
+30.    10    28.0   1.0    0.0       vpermd	ymm1, ymm0, ymm2
+31.    10    30.0   0.0    0.0       vpcmpgtd	ymm1, ymm1, ymm2
+32.    10    31.0   0.0    0.0       vmovmskps	ecx, ymm1
+33.    10    33.0   0.0    0.0       test	ecx, ecx
+34.    10    34.0   0.0    0.0       jne	LBB11_11
+       10    11.7   0.4    14.6      <total>
