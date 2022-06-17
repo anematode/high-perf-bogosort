@@ -20,9 +20,12 @@
 #include <sched.h>
 #endif
 
-#define MAX_THREADS 24
+// Change this to your desired thread count
+#define MAX_THREADS 8
 // Whether to attempt to force threads to certain cores to prevent switching
 #define attempt_taskset 1
+// Print cycle count for avx2 thingy
+#define SHOW_CYCLES 1
 
 #ifndef __linux__
 #if attempt_taskset
@@ -32,21 +35,33 @@
 #endif
 #endif
 
+/**
+ * Determines the program's random number generator. By design, the program is deterministic (in the sense that
+ * if you run it twice, the unsorted arrays will always be exactly the same 
+ */
 static uint64_t SEED = 42;
 
 static uint64_t r = 3;
 static int result[24]; // only 16 are actually used
 pthread_mutex_t result_mutex;
 
+// Whether to print victory
+static int print_which_thread_found;
+
 static uint64_t total_iters[MAX_THREADS];
-static volatile int complete;  // if true, all threads stop working
+// Note: rdtsc runs at a constant rate, independent of clock and context switches, so it has limited utility
+static uint64_t measured_rdtsc[MAX_THREADS]; 
+// if true, all threads immediately terminate. Note that this is really undefined behavior, but in practice it works
+// with the volatile kw. Don't do this in general!
+static volatile int complete;
 
 struct timespec last_cleared;
+// Whether to run taskset
 static int taskset_enabled;
 
 void set_taskset_enabled(int e) {
 	if (e && !attempt_taskset) {
-		printf("Tried to enable taskset when there was no option to do so; please set attempt_taskset to 1 if on Linux");
+		printf("Tried to enable taskset when there was no option to do so; please set attempt_taskset to 1 if on Linux\n");
 		abort();
 	}
 	taskset_enabled = e;
@@ -66,6 +81,7 @@ uint64_t sum_total_iters() {
 
 void clear_total_iters() {
 	memset(total_iters, 0, MAX_THREADS * sizeof(uint64_t));
+	memset(measured_rdtsc, 0, MAX_THREADS * sizeof(uint64_t));
 	clock_gettime(CLOCK_MONOTONIC, &last_cleared);
 }
 
@@ -73,14 +89,21 @@ double get_elapsed();
 
 void summarize_total_iters() {
 	uint64_t sum_iters = 0;
+	uint64_t sum_rdtsc = 0;
+
 	for (int i = 0; i < MAX_THREADS; ++i) {
 		uint64_t iters = total_iters[i];
+		uint64_t rdtsc = measured_rdtsc[i];
 
 		sum_iters += iters;
+		sum_rdtsc += rdtsc;
+
 		if (iters) printf("Thread %i iters: %llu\n", i, iters);
+		if (rdtsc) printf("Thread %i rdtsc: %llu\n", i, rdtsc);
 	}
 
 	printf("\nTotal iters: %llu\n", sum_iters);
+	printf("\nTotal rdtsc: %llu\n", sum_rdtsc);
 	
 	struct timespec finish;
 	clock_gettime(CLOCK_MONOTONIC, &finish);
@@ -90,9 +113,6 @@ void summarize_total_iters() {
 	
 	printf("One iter every ns: %f\n", elapsed / sum_iters * 1.0e9);
 }
-
-// Print victory
-static int print_which_thread_found;
 
 #ifdef __linux__
 int core_count() {
@@ -207,8 +227,6 @@ inline __m256i get_shuffle_shift(int idx) {
 	return _mm256_load_si256(idx + shifts);
 }
 
-#define SHOW_CYCLES 0
-
 void* avx2_bogosort(void* _thread_id) {
 	int thread_id = _thread_id ? *(int*) _thread_id : 0;
 	int* a = result;
@@ -248,7 +266,6 @@ void* avx2_bogosort(void* _thread_id) {
 #endif
 
 	while (!complete) {
-		// Bottleneck is memory loads (vmovdqa, latency 10!!)
 		++iters;
 
 		// Perform two shuffles within each register and interleave them
@@ -276,7 +293,10 @@ void* avx2_bogosort(void* _thread_id) {
 		p1sh = _mm256_permutevar8x32_epi32(part1, shift_right);
 		p1sorted = _mm256_cmpgt_epi32(p1sh, part1);
 
-		if (!_mm256_testz_si256(p1sorted, p1sorted)) {
+		// Doing this followed by a 32-bit test saves one uop on port 5 compared to vptest
+		uint32_t p1msk = _mm256_movemask_epi8(p1sorted);
+
+		if (p1msk) {
 			continue;
 		}
 
@@ -285,11 +305,13 @@ void* avx2_bogosort(void* _thread_id) {
 		p2sh = _mm256_insert_epi32(p2sh, _mm256_extract_epi32(part1, 7), 0);
 		p2sorted = _mm256_cmpgt_epi32(p2sh, part2);
 
-		if (!_mm256_testz_si256(p2sorted, p2sorted)) {
+		uint32_t p2msk = _mm256_movemask_epi8(p2sorted);
+
+		if (p2msk) {
 			continue;
 		}
 
-		// Found!!
+		// Found
 		// Write result	
 		pthread_mutex_lock(&result_mutex);
 		_mm256_store_si256((__m256i*) a, part1);
@@ -307,7 +329,7 @@ void* avx2_bogosort(void* _thread_id) {
 	// store and return
 #if SHOW_CYCLES
 	uint64_t cyc_end = __rdtscp(&_);
-	printf("Cyc: %llu\n", cyc_end - cyc_start);
+	measured_rdtsc[thread_id] += cyc_end - cyc_start;
 #endif
 
 	// Force storage (for counting and such)
@@ -563,7 +585,8 @@ int main() {
 #ifdef __linux__
 	set_taskset_enabled(1);
 #endif
-	standard_battery_non_accel();
+	run_avx2_bogosort_nonzero(5, 9, 10, MAX_THREADS);
+	return 0;
 	run_full_avx2_bogosort(MAX_THREADS);
 	run_full_avx2_bogosort(MAX_THREADS);
 }

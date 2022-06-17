@@ -18,7 +18,7 @@ One computer is of course much faster than the other. The Linux laptop, however,
 
 A simple mathematical preliminary. If we have a random event that happens with probability *p*, the average number of samples until it  happens is *1/p*. Thus, in our case, the average number of *shuffles* (i.e., the number of times the array is shuffled and tested whether it's sorted) is just the total number of shuffles. (Note each shuffle is statistically independent by bogosort's wise design.)
 
-There are two entries below. The first entry is the most obvious bogosort algorithm on *n* elements: we shuffle the *n* elements, then check whether they're sorted. Great. That will take *n!* iterations on average. The second entry ("16 elems") is a bogosort on *16* elements, where *n* of those elements are nonzero. If you think about it, a lot of the tested shuffles will look like `0, 1, 0, 2, 3, 4, 0, 0, 5, 0, 6, 0, 0, 7, 8, 9`, in which the nonzero elements are in order but the shuffle is rejected because they're not all in order. That can be done in *16! \* nCr(16, n)* ways, which is much, much greater than *n!* for *n <= 15*. And, as we observe, the second implementation takes much longer. Alas, they eventually both get too slow to measure without dying of boredom.
+There are two entries below. The first entry is the most obvious bogosort algorithm on *n* elements: we shuffle the *n* elements, then check whether they're sorted. Great. That will take *n!* iterations on average. The second entry ("16 elems") is a bogosort on *16* elements, where *n* of those elements are nonzero. If you think about it, a lot of the tested shuffles will look like `0, 1, 0, 2, 3, 4, 0, 0, 5, 0, 6, 0, 0, 7, 8, 9`, in which the nonzero elements are in order but the shuffle is rejected because they're not all in order. That can be done in *16! x nCr(16, n)* ways, which is much, much greater than *n!* for *n <= 15*. And, as we observe, the second implementation takes much longer. Alas, they eventually both get too slow to measure without dying of boredom.
 
 Even a bogosort enjoyer like myself would not implement the second entry for no reason. It is only implemented because it is logically equivalent to the AVX2 implementation.
 
@@ -159,4 +159,7 @@ sudo perf stat -e uops_dispatched_port.port_0 -e uops_dispatched_port.port_1 -e 
 sudo perf stat -a ./bogosort
 ```
 
-
+Check macOS thermal throttling:
+```
+pmset -g thermlog
+```
