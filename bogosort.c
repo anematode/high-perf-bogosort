@@ -20,24 +20,14 @@
 #include <sched.h>
 #endif
 
-#ifdef __AVX512F__
-#pragma message ("Computer supports AVX512")
-#endif
-
 // Change this to your desired thread count
 #define MAX_THREADS 8
 // Whether to attempt to force threads to certain cores to prevent switching
 #define attempt_taskset 1
+// Whether to attempt avx512 (automatically disabled if not supported)
+#define attempt_avx512 1
 // Print cycle count for avx2 thingy
 #define SHOW_CYCLES 1
-
-#ifndef __linux__
-#if attempt_taskset
-#warning Taskset does not work on non-Linux systems; attempt_taskset will be set to 0
-#undef attempt_taskset
-#define attempt_taskset 0
-#endif
-#endif
 
 /**
  * Determines the program's random number generator. By design, the program is deterministic (in the sense that
@@ -62,6 +52,24 @@ static volatile int complete;
 struct timespec last_cleared;
 // Whether to run taskset
 static int taskset_enabled;
+
+#ifndef __linux__
+#if attempt_taskset
+#warning Taskset does not work on non-Linux systems; attempt_taskset will be set to 0
+#undef attempt_taskset
+#define attempt_taskset 0
+#endif
+#endif
+
+#ifdef __AVX512F__
+#pragma message ("Computer supports AVX512")
+#else
+#if attempt_avx512
+#warning AVX512 is not supported on this system (turning off)
+#undef attempt_avx512
+#define attempt_avx512 0
+#endif
+#endif
 
 void set_taskset_enabled(int e) {
 	if (e && !attempt_taskset) {
@@ -153,6 +161,7 @@ int is_sorted(int* a, int len) {
 	return  1;
 }
 
+// Fisher-Yates
 inline void shuffle(int* a, int len) {
 	for (int i = len - 1; i >= 1; --i) {
 		int j = rand_range(i + 1);
@@ -169,7 +178,7 @@ void print_arr(int* a, int len) {
 	printf("\n");
 }
 
-void bogosort(int* a, int len) {
+void standard_bogosort(int* a, int len) {
 	uint64_t iters = 0;
 
 	while (!is_sorted(a, len)) {
@@ -193,6 +202,19 @@ void log_mm256(const __m256i value)
     printf("\n");
 }
 
+#ifdef __AVX_512__
+void log_mm512(const __m512i value)
+{
+    const size_t n = sizeof(__m512i) / sizeof(int);
+    int buffer[n];
+
+    _mm512_storeu_si512((__m512i*)buffer, value);
+
+    for (int i = 0; i < n; i++)
+        printf("%i ", buffer[i]);
+    printf("\n");
+}
+#endif
 static int* shuffles;
 
 #define SHIFT_COUNT 8
@@ -240,8 +262,6 @@ inline __m256i get_shuffle_shift(int idx) {
 	uint64_t r = SEED++; \
 	pthread_mutex_unlock(&result_mutex); 
 
-
-
 #if SHOW_CYCLES
 #undef COMMON_INIT_CYCLES
 #define COMMON_INIT_CYCLES \
@@ -274,16 +294,141 @@ inline __m256i get_shuffle_shift(int idx) {
 #endif
 
 #ifdef __AVX512F__
+// We'll assume an L1d of 32 kib
+#define AVX512_SHUFFLE_COUNT 65536
+
+__m512i* sh;
+
+pthread_mutex_t avx512ld_mutex;
+
+void init_avx512_shuffles() {
+	_Alignas(64) static int bleh[16];
+	for (int i = 0; i < 16; ++i) {
+		bleh[i] = i;
+	}
+
+	__m512i inc = _mm512_set1_epi32(4);
+
+	for (int i = 0; i < AVX512_SHUFFLE_COUNT; ++i) {
+		__m512i k = _mm512_setzero_si512();
+		__m512i sl_count = _mm512_setzero_si512();
+
+		for (int j = 0; j < 16; ++j) {
+			shuffle(bleh, 16);
+
+			__m512i sh = _mm512_load_si512((const __m512i*) bleh);
+
+			k = _mm512_or_si512(k, _mm512_sllv_epi32(sh, sl_count));
+			sl_count = _mm512_add_epi32(sl_count, inc);
+		}
+
+		_mm512_store_si512(&sh[i], k);
+	}
+}
+
+__m512i* alloc_avx512_shuffles() {
+	pthread_mutex_lock(&avx512ld_mutex);
+		sh = aligned_alloc(64, AVX512_SHUFFLE_COUNT * sizeof(__m512i) / sizeof(char));
+
+		init_avx512_shuffles();
+	pthread_mutex_unlock(&avx512ld_mutex);
+
+	return sh;
+}
+
 void* avx512_bogosort(void* _thread_id) {
 	COMMON_INIT
+	
+	__m512i* sh = alloc_avx512_shuffles();
 
 	__m512i arr = _mm512_load_si512((const __m512i*) a);
+	__m512i next_arr;
+	__m512i shuffle_list = _mm512_load_si512(sh);
+	__m512i shuffle_list2, shuffle_list3, shuffle_list4;
+
+	__m512i swapped_arr;
+	__m512i shift_right = _mm512_setr_epi32(0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14);
+
+	__mmask16 every_other = 0x5555; // mask every other integer
+	__mmask16 cmp;
+
+	// Write result
+	while (!complete) {
+		if (r % (1 << 10) == 0) {
+			alloc_avx512_shuffles();
+		}
+		// There are really only 8192 distinct 16-element shuffles we can choose immediately at random,
+		// and only 1024 test orders. With so few shuffles, it's easy to have cycles etc. that make it
+		// far less random. The solution is not actually too hard: Immediately after using the shuffle,
+		// we shuffle the shuffle and store it back (the exact algorithm is a bit involved). We try to
+		// hide the latency of the shuffles with test instructions.
+
+		r = 8121 * r + 28411;
+
+#define ROLL_SHUFFLE shuffle_list = _mm512_rol_epi32(shuffle_list, 4);
+#define APPLY_SHUFFLE arr = _mm512_permutexvar_epi32(shuffle_list, arr); 
+#define JMP_POSSIBLY_SORTED \
+		swapped_arr = _mm512_rol_epi64(arr, 32); \
+		cmp = _mm512_mask_cmpgt_epi32_mask(every_other, arr, swapped_arr); \
+		iters++; \
+		if (_ktestz_mask16_u8(cmp, cmp)) goto test_sorted;
+#define ITER APPLY_SHUFFLE JMP_POSSIBLY_SORTED ROLL_SHUFFLE
+
+		ITER ITER
+		ITER ITER
+		ITER ITER
+		ITER ITER
+
+#undef ITER	
+sort_fail:
+		shuffle_list = _mm512_load_si512(&sh[r % AVX512_SHUFFLE_COUNT]);
+		r = 3 * r + 25018;
+		shuffle_list2 = _mm512_load_si512(&sh[r % AVX512_SHUFFLE_COUNT]);
+
+		shuffle_list = _mm512_permutexvar_epi32(shuffle_list, shuffle_list2);
+
+		continue;
+test_sorted:
+		swapped_arr = _mm512_permutexvar_epi32(shift_right, arr);
+		cmp = _mm512_cmpgt_epi32_mask(swapped_arr, arr);
+
+		log_mm512(arr);
+		if (!_ktestz_mask64_u8(cmp, cmp)) goto sort_fail;
+
+		// Found
+		pthread_mutex_lock(&result_mutex);
+
+		if (complete)
+			break;
+		_mm512_store_si512((__m512i*) a, arr);
+
+		complete = 1;
+		
+		if (print_which_thread_found)
+			printf("Thread %i found!\n", thread_id);
+
+		pthread_mutex_unlock(&result_mutex);
+		break;
+	}
+
+	// store and return
+	STORE_CYCLES_COMMON
+
+	pthread_mutex_lock(&result_mutex);
+	total_iters[thread_id] += iters;
+	pthread_mutex_unlock(&result_mutex);
+
+	return NULL;
 }
 #else
 void* avx512_bogosort(void* _thread_id) {
 	abort();
 }
 #endif /* __AXV512F__ */
+
+uint64_t next_r(uint64_t r) {
+	return  	6364136223846793005ULL * r + 1;
+}
 
 void* avx2_bogosort(void* _thread_id) {
 	COMMON_INIT
@@ -307,10 +452,10 @@ void* avx2_bogosort(void* _thread_id) {
 		shuffled1 = _mm256_permutevar8x32_epi32(part1, shuffle3);
 		shuffled2 = _mm256_permutevar8x32_epi32(part2, shuffle4);
 
-		r = r * 3 + 250182; // pseudorandom 64-bit
+		r = next_r(r); // pseudorandom 64-bit
 
-		shuffle3 = get_8x32_shuffle(r % SHUFFLE_COUNT);
-		shuffle4 = get_8x32_shuffle((r >> 12) % SHUFFLE_COUNT);
+		shuffle3 = get_8x32_shuffle((r >> 24) % SHUFFLE_COUNT);
+		shuffle4 = get_8x32_shuffle((r >> 34) % SHUFFLE_COUNT);
 
 		interleaved1 = _mm256_unpackhi_epi32(shuffled1, shuffled2);
 		interleaved2 = _mm256_unpacklo_epi32(shuffled2, shuffled1);
@@ -318,11 +463,13 @@ void* avx2_bogosort(void* _thread_id) {
 		shuffled1 = _mm256_permutevar8x32_epi32(interleaved1, shuffle1);
 		shuffled2 = _mm256_permutevar8x32_epi32(interleaved2, shuffle2);
 		
-		shuffle1 = get_8x32_shuffle((r >> 36) % SHUFFLE_COUNT);
+		shuffle1 = get_8x32_shuffle((r >> 44) % SHUFFLE_COUNT);
 		shuffle2 = get_8x32_shuffle((r >> 54) % SHUFFLE_COUNT);	
 
-		part1 = _mm256_unpackhi_epi32(shuffled1, shuffled2);
-		part2 = _mm256_unpacklo_epi32(shuffled2, shuffled1);	
+		// part1 = _mm256_unpackhi_epi32(shuffled1, shuffled2);
+		// part2 = _mm256_unpacklo_epi32(shuffled2, shuffled1);	
+		part1 = shuffled1;
+		part2 = shuffled2;
 		
 		// check sorted
 		p1sh = _mm256_permutevar8x32_epi32(part1, shift_right);
@@ -350,6 +497,8 @@ void* avx2_bogosort(void* _thread_id) {
 		// Found
 		// Write result	
 		pthread_mutex_lock(&result_mutex);
+
+		if (complete) break;
 		_mm256_store_si256((__m256i*) a, part1);
 		_mm256_store_si256(1 + (__m256i*) a, part2);
 
@@ -416,7 +565,7 @@ void time_end(const char* msg) {
 }
 
 // Multithread AVX2 bogosort
-void run_avx2_bogosort(int thread_count) {
+void run_accel_bogosort(int thread_count, int use_avx512) {
 	complete = 0;
 
 	pthread_t threads[MAX_THREADS];
@@ -424,7 +573,7 @@ void run_avx2_bogosort(int thread_count) {
 
 	for (int i = 0; i < thread_count; ++i) {
 		thread_ids[i] = i;
-		pthread_create(threads + i, NULL, &avx2_bogosort, (void*) &thread_ids[i]);
+		pthread_create(threads + i, NULL, use_avx512 ? &avx512_bogosort : &avx2_bogosort, (void*) &thread_ids[i]);
 	}
 
 	for (int i = 0; i < thread_count; ++i) {
@@ -448,7 +597,7 @@ void run_bogosort_nonzero(int trials, int min, int max) {
 			fill_nonzero_elems(nonzero);
 			shuffle(result, 16);
 
-			bogosort(result, 16);
+			standard_bogosort(result, 16);
 		}
 
 		double e = grab_elapsed();
@@ -473,7 +622,7 @@ void run_bogosort(int trials, int min, int max) {
 			fill_nonzero_elems(len);
 			shuffle(result, len);
 
-			bogosort(result, len);
+			standard_bogosort(result, len);
 		}
 
 		double e = grab_elapsed();
@@ -486,10 +635,12 @@ void run_bogosort(int trials, int min, int max) {
 	time_end("bogosort");
 }
 
-void run_avx2_bogosort_nonzero(int trials, int min, int max, int thread_count)  {
+// void run_general_nonzero(int trials, int min, int max, int tc, void (*impl) 
+
+void run_accel_bogosort_nonzero(int trials, int min, int max, int thread_count, int use_avx512)  {
 	time_start();
 
-	printf("\n\n\n\nRunning accelerated bogosort_nonzero, %i trials, minimum count %i, maximum count %i, thread count %i\n", trials, min, max, thread_count);
+	printf("\n\n\n\nRunning accelerated bogosort_nonzero, %i trials, minimum count %i, maximum count %i, thread count %i, AVX-512 %i\n", trials, min, max, thread_count, use_avx512);
 	summarize_ts_enabled();
 
 	for (int nonzero = min; nonzero < max; ++nonzero) {
@@ -500,8 +651,8 @@ void run_avx2_bogosort_nonzero(int trials, int min, int max, int thread_count)  
 			// Negligible timings
 			fill_nonzero_elems(nonzero);
 			shuffle(result, 16);
-			
-			run_avx2_bogosort(thread_count);
+				
+			run_accel_bogosort(thread_count, use_avx512);
 		}
 
 		double e = grab_elapsed();	
@@ -511,16 +662,16 @@ void run_avx2_bogosort_nonzero(int trials, int min, int max, int thread_count)  
 		summarize_total_iters();
 	}
 	
-	time_end("accelerated bogosort_nonzero");
+	time_end("accelerated bogosort nonzero");
 }
 
-void run_full_avx2_bogosort(int num_threads) {
-	const int elem_count = 16;
+void run_full_accel_bogosort(int num_threads) {
+	const int elem_count = 10;
 
 	time_start();
 	clear_total_iters();
 
-	printf("Running full %i-element AVX2 bogosort\n", elem_count);
+	printf("Running full %i-element accelerated bogosort, %i threads (AVX-512: %i)\n", elem_count, num_threads, attempt_avx512);
 	print_which_thread_found = 1;
 	summarize_ts_enabled();
 
@@ -530,7 +681,7 @@ void run_full_avx2_bogosort(int num_threads) {
 	printf("Unsorted array: ");
 	print_arr(result, 16);
 
-	run_avx2_bogosort(num_threads);
+	run_accel_bogosort(num_threads, attempt_avx512);
 
 	printf("Sorted array: ");
 	print_arr(result, 16);
@@ -538,7 +689,7 @@ void run_full_avx2_bogosort(int num_threads) {
 	summarize_total_iters();
 
 	char o[100];
-	sprintf(o, "AVX2 bogosort %i elements", elem_count);
+	sprintf(o, "Accelerated bogosort %i elements", elem_count);
 	time_end(o);
 }
 
@@ -551,10 +702,13 @@ void single_threaded_iters() {
 	printf("Unsorted array: ");
 	print_arr(result, 16);	
 
-	printf("Timing single-threaded accelerated bogosort with %i nonzero elements\n", nonzero_elems);
+	printf("Timing single-threaded accelerated bogosort with %i nonzero elements (AVX-512: %i)\n", nonzero_elems, attempt_avx512);
 	clear_total_iters();
 
-	avx2_bogosort(NULL);
+	if (attempt_avx512)
+		avx512_bogosort(NULL);
+	else
+		avx2_bogosort(NULL);
 
 	printf("Sorted array: ");
 	print_arr(result, 16);
@@ -592,12 +746,16 @@ void standard_battery() {
 		}
 
 		set_taskset_enabled(0);	
-		run_avx2_bogosort_nonzero(trials, min_cnt, max_cnt, th_count);
+		run_accel_bogosort_nonzero(trials, min_cnt, max_cnt, th_count, 1);
 		clear_total_iters();
 
 #if attempt_taskset
 		set_taskset_enabled(1);
-		run_avx2_bogosort_nonzero(trials, min_cnt, max_cnt, th_count);
+		run_accel_bogosort_nonzero(trials, min_cnt, max_cnt, th_count, 1);
+		clear_total_iters();
+#endif
+#if attempt_avx512
+		run_accel_bogosort_nonzero(trials, min_cnt, max_cnt, th_count, 1);
 		clear_total_iters();
 #endif
 	}
@@ -618,8 +776,6 @@ int main() {
 #ifdef __linux__
 	set_taskset_enabled(1);
 #endif
-	run_avx2_bogosort_nonzero(5, 9, 10, MAX_THREADS);
-	return 0;
-	run_full_avx2_bogosort(MAX_THREADS);
-	run_full_avx2_bogosort(MAX_THREADS);
+
+	run_accel_bogosort_nonzero(1000, 9, 10, 8, 0);
 }

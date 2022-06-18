@@ -168,3 +168,8 @@ Check macOS thermal throttling:
 ```
 pmset -g thermlog
 ```
+
+Emulate AVX-512:
+```
+/usr/local/bin/intel-sde/sde64 -- bin/bogosort_avx512 -- user-application
+```
