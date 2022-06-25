@@ -169,6 +169,12 @@ Check macOS thermal throttling:
 pmset -g thermlog
 ```
 
+
+Output ASM on GCC:
+```
+gcc -S bogosort.c -O2 -march=native -o bin/bogosort.s -masm=intel
+```
+
 Emulate AVX-512:
 ```
 /usr/local/bin/intel-sde/sde64 -- bin/bogosort_avx512 -- user-application
