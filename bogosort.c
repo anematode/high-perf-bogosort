@@ -676,7 +676,7 @@ void run_accel_bogosort_nonzero(int trials, int min, int max, int thread_count, 
 }
 
 void run_full_accel_bogosort(int num_threads) {
-	const int elem_count = 11;
+	const int elem_count = 16;
 
 	time_start();
 	clear_total_iters();
@@ -789,7 +789,7 @@ int main() {
 	set_taskset_enabled(1);
 #endif
 
-	SEED++;
-	run_accel_bogosort_nonzero(100, 9, 10, 8, 0);
+	run_full_accel_bogosort(8);
+	// run_accel_bogosort_nonzero(100, 9, 10, 8, 0);
 }
 

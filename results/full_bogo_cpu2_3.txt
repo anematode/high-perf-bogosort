@@ -1,0 +1,50 @@
+Note: newer inner loop, 2048 lookup
+sudo perf stat -e cycles,task-clock,branch-misses,branches,uops_dispatched_port.port_0,uops_dispatched_port.port_1,uops_dispatched_port.port_2,uops_dispatched_port.port_3,uops_dispatched_port.port_4,uops_dispatched_port.port_5,uops_dispatched_port.port_6,uops_dispatched_port.port_7,cycle_activity.stalls_total,cycle_activity.stalls_l1d_miss,uops_executed.stall_cycles,resource_stalls.any bin/bogosort
+Max threads (accelerated only): 8
+Shuffle lookup table size: 2048
+Compiled with taskset: yes
+Timer filled shuffles finished: 0.001461 seconds
+Running full 16-element accelerated bogosort, 8 threads (AVX-512: 0)
+Taskset is enabled: yes
+Unsorted array: 6 3 2 8 12 16 1 15 7 4 11 14 9 5 13 10 
+Thread 0 found!
+Sorted array: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 
+Thread 0 iters: 4569121484350
+Thread 1 iters: 4569167194975
+Thread 2 iters: 4573186292938
+Thread 3 iters: 4552904344167
+Thread 4 iters: 4575441091853
+Thread 5 iters: 4577757628967
+Thread 6 iters: 4571705416431
+Thread 7 iters: 4535954601527
+
+Total iters: 36525238055208
+
+Total rdtsc: 0
+One iter every ns: 0.599775
+Timer Accelerated bogosort 16 elements finished: 21906.917485 seconds
+
+ Performance counter stats for 'bin/bogosort':
+
+403,134,946,314,757      cycles                    #    2.312 GHz                      (26.67%)
+    174,346,807.98 msec task-clock                #    7.959 CPUs utilized          
+     2,980,412,978      branch-misses             #    0.00% of all branches          (26.67%)
+73,102,897,438,230      branches                  #  419.296 M/sec                    (26.67%)
+114,936,165,355,835      uops_dispatched_port.port_0 #  659.239 M/sec                    (26.67%)
+122,100,637,299,577      uops_dispatched_port.port_1 #  700.332 M/sec                    (26.67%)
+54,854,304,389,752      uops_dispatched_port.port_2 #  314.628 M/sec                    (26.67%)
+54,858,548,152,620      uops_dispatched_port.port_3 #  314.652 M/sec                    (26.67%)
+    69,757,602,439      uops_dispatched_port.port_4 #  400.108 K/sec                    (26.67%)
+183,121,313,051,639      uops_dispatched_port.port_5 #    1.050 G/sec                    (26.67%)
+128,653,098,285,502      uops_dispatched_port.port_6 #  737.915 M/sec                    (26.67%)
+    32,127,071,316      uops_dispatched_port.port_7 #  184.271 K/sec                    (26.67%)
+50,140,267,994,498      cycle_activity.stalls_total #  287.589 M/sec                    (26.67%)
+29,807,553,466,896      cycle_activity.stalls_l1d_miss #  170.967 M/sec                    (26.67%)
+50,139,709,888,948      uops_executed.stall_cycles #  287.586 M/sec                    (26.67%)
+   700,428,179,987      resource_stalls.any       #    4.017 M/sec                    (26.67%)
+
+   21906.919902057 seconds time elapsed
+
+  174319.477539000 seconds user
+      55.327549000 seconds sys
+
