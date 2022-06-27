@@ -33,7 +33,7 @@
  * Determines the program's random number generator. By design, the program is deterministic (in the sense that
  * if you run it twice, the unsorted arrays will always be exactly the same 
  */
-static uint64_t SEED = 50;
+static uint64_t SEED = 202;
 
 static uint64_t r = 3;
 static int result[24]; // only 16 are actually used
@@ -188,6 +188,140 @@ void standard_bogosort(int* a, int len) {
 	}
 
 	total_iters[0] += iters;
+}
+
+__m128i* shuffle_dump;
+uint64_t shuffle_dump_idx;
+uint64_t shuffle_dump_cap = 0;
+
+// Dumps a shuffle into two 64-bit chunks by converting to bytes from 32-bit integers
+void dump_shuffle(const __m256i part1, const __m256i part2) {
+	if (shuffle_dump_idx >= shuffle_dump_cap) {
+		shuffle_dump = realloc(shuffle_dump,
+				sizeof(__m128i) * (shuffle_dump_cap = shuffle_dump_cap * 1.5 + 1000));
+	}
+
+
+	const __m256i pack_shuffle = _mm256_setr_epi8(
+			0, 4, 8, 12, -1, -1, -1, -1,
+			-1, -1, -1, -1, -1, -1, -1, -1,
+			-1, -1, -1, -1, 0, 4, 8, 12, 
+			-1, -1, -1, -1, -1, -1, -1, -1);
+	const __m256i pack_shuffle2 = _mm256_setr_epi8(
+			-1, -1, -1, -1, -1, -1, -1, -1,
+			0, 4, 8, 12, -1, -1, -1, -1,
+			-1, -1, -1, -1, -1, -1, -1, -1,
+			-1, -1, -1, -1, 0, 4, 8, 12);
+
+	__m256i pack1 = _mm256_shuffle_epi8(part1, pack_shuffle);
+	__m256i pack2 = _mm256_shuffle_epi8(part2, pack_shuffle2);
+
+	__m128i compressed = _mm_or_si128(
+			_mm_or_si128(
+				_mm_or_si128(
+					_mm256_castsi256_si128(pack1),
+					_mm256_castsi256_si128(pack2)),
+				_mm256_extracti128_si256(pack1, 1)),
+			_mm256_extracti128_si256(pack2, 1));
+
+	_mm_storeu_si128(&shuffle_dump[shuffle_dump_idx++], compressed);
+}
+
+int cmp_shuffles(const __m128i shuf1, const __m128i shuf2) {
+	// Lexicographically compare two shuffles
+	int gt = _mm_movemask_epi8(_mm_cmpgt_epi8(shuf1, shuf2));
+	int lt = _mm_movemask_epi8(_mm_cmpgt_epi8(shuf2, shuf1));
+
+	return lt - gt;	 // if equal, the shuffles are equal, etc
+}
+
+void insertion_sort_shuffles(__m128i* start, uint64_t len) {
+	for (size_t i = 1; i < len; ++i) {
+		__m128i key = _mm_loadu_si128(&start[i]);
+
+		__m128i poop;
+
+		size_t j = i;
+		while ((j > 0) && cmp_shuffles(key, poop = _mm_loadu_si128(&start[j - 1])) < 0) {
+			_mm_storeu_si128(&start[j], poop);
+			--j;
+		}
+		_mm_storeu_si128(&start[j], key);
+	}
+}
+
+void quicksort_shuffles(__m128i* start, uint64_t len) {
+	if (len < 26) {
+		insertion_sort_shuffles(start, len);
+		return;
+	}
+
+  __m128i pivot = _mm_loadu_si128(&start[len / 2]);
+
+  uint64_t i, j;
+  for (i = 0, j = len - 1; ; i++, j--) {
+    while (0 < cmp_shuffles(pivot, _mm_loadu_si128(start + i))) i++;
+    while (0 > cmp_shuffles(pivot, _mm_loadu_si128(start + j))) j--;
+
+    if (i >= j) break;
+
+    __m128i temp_i = _mm_loadu_si128(start + i);
+    __m128i temp_j = _mm_loadu_si128(start + j);
+
+    _mm_storeu_si128(start + i, temp_j);
+    _mm_storeu_si128(start + j, temp_i);
+  }
+
+  quicksort_shuffles(start, i);
+  quicksort_shuffles(start + i, len - i);
+}
+
+void sort_shuffles(__m128i* entries, uint64_t count) {
+	quicksort_shuffles(entries, count);
+}
+
+void log_mm128(const __m128i value)
+{
+    const size_t n = sizeof(__m128i) / sizeof(uint8_t);
+    uint8_t buffer[n];
+
+    _mm_storeu_si128((__m128i*)buffer, value);
+
+    for (int i = 0; i < n; i++)
+        printf("%i ", buffer[i]);
+    printf("\n");
+}
+
+void analyze_shuffles(__m128i* entries, uint64_t count) {
+	// For statistical analysis; entries are compactified into 128-bit groupings of bytes
+	
+	printf("Analyzing randomness\n");
+
+	sort_shuffles(entries, shuffle_dump_idx);
+	int duplicates[16] = { 0 };
+	int same = 0;
+
+	printf("Sorted\n");
+
+	for (int i = 1; i < shuffle_dump_idx; ++i) {
+		__m128i s1 = _mm_loadu_si128(&shuffle_dump[i - 1]);
+		__m128i s2 = _mm_loadu_si128(&shuffle_dump[i]);
+
+		__m128i neq = _mm_xor_si128(s1, s2);
+		if (_mm_testz_si128(neq, neq)) {
+			// Same
+			same++;
+			if (same >= 16) same = 15;
+		} else {
+			duplicates[same]++;
+			same = 0;
+		}
+	}
+
+	for (int i = 0; i < 16; ++i) {
+		printf("Duplicates of count %i: %llu\n", i, duplicates[i]);
+	}
+	printf("Total shuffles: %llu\n", shuffle_dump_idx);
 }
 
 // Credit: https://stackoverflow.com/a/49154279/13458117
@@ -430,6 +564,8 @@ uint64_t next_r(uint64_t r) {
 	return 6364136223846793005ULL * r + 1;
 }
 
+#define DUMP_SHUFFLES 0
+
 void* avx2_bogosort(void* _thread_id) {
 	COMMON_INIT
 	__m256i shift_right = _mm256_setr_epi32(0, 0, 1, 2, 3, 4, 5, 6);         // shift right one 32-bit int  (gets optimized out)
@@ -473,6 +609,9 @@ void* avx2_bogosort(void* _thread_id) {
 		// Somewhat better shuffled, but ultimately not by enough to justify using 2 extra uops
 		// part1 = _mm256_unpackhi_epi32(shuffled1, shuffled2);
 		// part2 = _mm256_unpacklo_epi32(shuffled2, shuffled1);	
+#if DUMP_SHUFFLES
+		dump_shuffle(part1, part2);
+#endif // DUMP_SHUFFLES
 	
 		// check sorted
 		p1sh = _mm256_permutevar8x32_epi32(part1, shift_right);
@@ -676,7 +815,7 @@ void run_accel_bogosort_nonzero(int trials, int min, int max, int thread_count, 
 }
 
 void run_full_accel_bogosort(int num_threads) {
-	const int elem_count = 16;
+	const int elem_count = 10;
 
 	time_start();
 	clear_total_iters();
@@ -773,6 +912,12 @@ void standard_battery() {
 	time_end("standard battery");
 }
 
+void analyze_statistical_power() {
+	shuffle_dump_idx = 0;
+	run_full_accel_bogosort(1);
+	analyze_shuffles(shuffle_dump, shuffle_dump_idx);
+}
+
 int main() {
 	SEED *= 50;
 	setvbuf(stdout, NULL, _IONBF, 0);
@@ -789,7 +934,8 @@ int main() {
 	set_taskset_enabled(1);
 #endif
 
-	run_full_accel_bogosort(8);
+	// analyze_statistical_power();
+	run_full_accel_bogosort(1);
 	// run_accel_bogosort_nonzero(100, 9, 10, 8, 0);
 }
 

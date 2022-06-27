@@ -1,0 +1,48 @@
+Max threads (accelerated only): 8
+Shuffle lookup table size: 2048
+Compiled with taskset: yes
+Timer filled shuffles finished: 0.001218 seconds
+Running full 16-element accelerated bogosort, 8 threads (AVX-512: 0)
+Taskset is enabled: yes
+Unsorted array: 6 3 2 8 12 16 1 15 7 4 11 14 9 5 13 10 
+Thread 6 found!
+Sorted array: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 
+Thread 0 iters: 1307048162659
+Thread 1 iters: 1308859321597
+Thread 2 iters: 1316082023022
+Thread 3 iters: 1305680204082
+Thread 4 iters: 1329861765798
+Thread 5 iters: 1323767293027
+Thread 6 iters: 1332477434153
+Thread 7 iters: 1325092704187
+
+Total iters: 10548868908525
+
+Total rdtsc: 0
+One iter every ns: 0.642782
+Timer Accelerated bogosort 16 elements finished: 6780.623986 seconds
+
+ Performance counter stats for 'bin/bogosort':
+
+116,115,920,969,833      cycles                    #    2.312 GHz                      (26.67%)
+     50,222,492.99 msec task-clock                #    7.407 CPUs utilized          
+     1,380,557,117      branch-misses             #    0.01% of all branches          (26.67%)
+21,118,023,411,797      branches                  #  420.489 M/sec                    (26.67%)
+30,469,775,652,241      uops_dispatched_port.port_0 #  606.696 M/sec                    (26.67%)
+39,301,633,926,536      uops_dispatched_port.port_1 #  782.550 M/sec                    (26.67%)
+15,849,085,230,472      uops_dispatched_port.port_2 #  315.577 M/sec                    (26.67%)
+15,850,545,184,756      uops_dispatched_port.port_3 #  315.606 M/sec                    (26.67%)
+    25,635,372,470      uops_dispatched_port.port_4 #  510.436 K/sec                    (26.67%)
+53,165,297,941,864      uops_dispatched_port.port_5 #    1.059 G/sec                    (26.67%)
+35,747,700,102,643      uops_dispatched_port.port_6 #  711.787 M/sec                    (26.67%)
+    12,054,513,448      uops_dispatched_port.port_7 #  240.022 K/sec                    (26.67%)
+15,099,735,258,583      cycle_activity.stalls_total #  300.657 M/sec                    (26.67%)
+ 8,887,844,866,291      cycle_activity.stalls_l1d_miss #  176.969 M/sec                    (26.67%)
+15,100,670,744,050      uops_executed.stall_cycles #  300.675 M/sec                    (26.66%)
+ 1,116,292,788,296      resource_stalls.any       #   22.227 M/sec                    (26.67%)
+
+    6780.626067713 seconds time elapsed
+
+   50190.351397000 seconds user
+      65.709031000 seconds sys
+

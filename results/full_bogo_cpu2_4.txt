@@ -1,0 +1,24 @@
+Max threads (accelerated only): 8
+Shuffle lookup table size: 2048
+Compiled with taskset: yes
+Timer filled shuffles finished: 0.003852 seconds
+Running full 16-element accelerated bogosort, 8 threads (AVX-512: 0)
+Taskset is enabled: yes
+Unsorted array: 6 3 2 8 12 16 1 15 7 4 11 14 9 5 13 10 
+Thread 4 found!
+Sorted array: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 
+Thread 0 iters: 4003191339510
+Thread 1 iters: 3993431234788
+Thread 2 iters: 4020191060742
+Thread 3 iters: 3990789176562
+Thread 4 iters: 4007343005833
+Thread 5 iters: 4000803733636
+Thread 6 iters: 4000588185856
+Thread 7 iters: 3964317943340
+
+Total iters: 31980655680267
+
+Total rdtsc: 0
+One iter every ns: 0.599400
+Timer Accelerated bogosort 16 elements finished: 19169.215862 seconds
+
