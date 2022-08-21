@@ -3,7 +3,7 @@ High-performance bogosort of integers using AVX2.
 
 There are two implementations: a straightforward one (that operates on any size), and a less straightforward one that operates on 16-entry arrays only.
 
-The standard implementation uses a Fisher-Yates shuffle. The accelerated implementation does a pretty good, but not perfect shuffle, of the entries, and then tests whether they are sorted. Doing an actual Fisher-Yates shuffle would be quite a bit more complicated. Also, this is one of those tasks which actually would benefit hugely from AVX512 and its cross-lane shuffles (`vpermd zmm, zmm, zmm`), but I sadly do not own such a computer to develop or test that on.
+The standard implementation uses a Fisher-Yates shuffle. The accelerated implementation does a pretty good, but not perfect shuffle, of the entries, and then tests whether they are sorted. Doing an actual Fisher-Yates shuffle would be quite a bit more complicated. Also, this is one of those tasks which actually would benefit hugely from AVX512 and its shuffles (`vpermd zmm, zmm, zmm`, since the array would fit a zmm register), but I sadly do not own such a computer.
 
 ## Commentary
 
@@ -38,7 +38,7 @@ More seriously, sorted status is checked by shifting the first register to the r
 
 On my Macbook Pro, with 16 distinct elements, accelerated bogosort averages **14 cycles** per shuffle + test for single-threaded performance, as measured by `rdtsc` with turbo turned off. The measured amount agrees with llvm-mca analysis of the critical path. The bottleneck is vector loads of shuffles, which could be optimized better for sure. I'll probably get to it once I'm better with optimization. Ignoring the test for sorting, the actual shuffling of the main two registers has a loop-carried dependency chain of length **10 cycles**, so that's essentially the lower bound. The code branches off of *vptest* (latency 6), which isn't great if the branch is hard to predict. But the branch only happens when the lower register is sorted, which is infrequent when there are only a few duplicates. Hyperthreaded at full load, the new bottleneck seems to be port 5 contention: there are 10 instructions competing for port 5, and thus the theoretical maximum (which is actually nearly achieved!) is 10 cycles per iteration.
 
-#### Performance analysis
+#### Performance analysis (slightly outdated)
 
 The following is the most important section, compiled down:
 
